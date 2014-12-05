@@ -25,7 +25,7 @@ public class Kalkulator {
                     }
                 } else {
                     for ( char c : s.toCharArray() ) {
-                        if ( !A.isInteger(c + "") && c != ':' ) {
+                        if ( !A.isInteger(c + "") && c != ':' && c != '-' ) {
                             throw new ParamParseException(s, c + "", "błędny znak");
                         }
                     }
@@ -38,9 +38,17 @@ public class Kalkulator {
                 w2 = new Wielomian(wTmpArr);
             }
         } catch ( ParamParseException ex ) {
-            log.log(Level.SEVERE, null, ex);
+            log.log(Level.SEVERE, ex.getMessage(), ex);
             System.exit(1);
         }
+        
+        System.out.println("Dane wejściowe:\n"
+                + "( " + w1.toString() + " ) "
+                + Operation.getOpChar(op)
+                + " ( " + w2.toString() + " )\n"
+                + "Wynik: " + Wielomian.calculate(w1, op, w2).toString()
+            );
+        
     }
     
     

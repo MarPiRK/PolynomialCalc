@@ -18,7 +18,7 @@ public class ParamParseException extends Exception {
     @Override
     public String getMessage() {
         return "Błąd w parametrze: \"" + param + "\"" + 
-                (error != null ? ": >" + error + "<" : "") +
+                (error != null ? " >" + error + "<" : "") +
                 (msg != null ? " - " + msg : "");
     }
 

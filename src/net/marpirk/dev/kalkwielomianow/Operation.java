@@ -16,4 +16,13 @@ public enum Operation {
         return null;
     }
     
+    public static Character getOpChar(Operation o) {
+        switch ( o ) {
+            case ADD: return '+';
+            case MULTIPLY: return '*';
+            case DIVIDE: return ':';
+            default: return null;
+        }
+    }
+    
 }
