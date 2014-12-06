@@ -3,16 +3,21 @@ package net.marpirk.dev.kalkwielomianow;
 public enum Operation {
     ADD, MULTIPLY, DIVIDE;
     
+    private static boolean checkArg(String arg, String toCheck) {
+        return arg.length() <= toCheck.length() &&
+               arg.equalsIgnoreCase(toCheck.substring(0, arg.length()));
+    }
+    
     public static boolean isOperator(String s) {
-        return s.startsWith("a") ||     //add
-                s.startsWith("m") ||    //multiply
-                s.startsWith("d");      //divide
+        return checkArg(s, "add") ||        //add
+                checkArg(s, "multiply") ||  //multiply
+                checkArg(s, "divide");      //divide
     }
     
     public static Operation getFromString(String s) {
-        if ( s.startsWith("a") ) return ADD;
-        if ( s.startsWith("m") ) return MULTIPLY;
-        if ( s.startsWith("d") ) return DIVIDE;
+        if ( checkArg(s, "add") ) return ADD;
+        if ( checkArg(s, "multiply") ) return MULTIPLY;
+        if ( checkArg(s, "divide") ) return DIVIDE;
         return null;
     }
     

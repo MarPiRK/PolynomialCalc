@@ -2,6 +2,7 @@ package net.marpirk.dev.kalkwielomianow;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import net.marpirk.dev.kalkwielomianow.A.Pair;
 import net.marpirk.dev.kalkwielomianow.exceptions.ParamParseException;
 
 /**
@@ -74,15 +75,6 @@ public final class Wielomian {
         return tmpS;
     }
     
-    public static Wielomian calculate(Wielomian w1, Operation o, Wielomian w2) {
-        switch ( o ) {
-            case ADD: return add(w1, w2);
-            case MULTIPLY: return multiply(w1, w2);
-            case DIVIDE: return divide(w1, w2);
-            default: return null;
-        }
-    }
-    
     public static Wielomian add(Wielomian w1, Wielomian w2) {
         Wielomian wr = new Wielomian(w1.j);
         w2.j.keySet().stream().forEach((i) -> {
@@ -96,10 +88,20 @@ public final class Wielomian {
     }
     
     public static Wielomian multiply(Wielomian w1, Wielomian w2) {
-        return null;
+        Wielomian wr = new Wielomian();
+        w1.j.keySet().forEach((i) -> {
+            w2.j.keySet().forEach((j) -> {
+                if ( wr.j.containsKey(i + j) ) {
+                    wr.j.replace(i + j, wr.j.get(i + j) + w1.j.get(i) * w2.j.get(j));
+                } else {
+                    wr.j.put(i + j, w1.j.get(i) * w2.j.get(j));
+                }
+            });
+        });
+        return wr;
     }
     
-    public static Wielomian divide(Wielomian w1, Wielomian w2) {
+    public static Pair<Wielomian, Integer> divide(Wielomian w1, Wielomian w2) {
         return null;
     }
 

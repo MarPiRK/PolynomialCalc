@@ -3,6 +3,7 @@ package net.marpirk.dev.kalkwielomianow;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import net.marpirk.dev.kalkwielomianow.A.Pair;
 import net.marpirk.dev.kalkwielomianow.exceptions.ParamParseException;
 
 public class Kalkulator {
@@ -42,12 +43,28 @@ public class Kalkulator {
             System.exit(1);
         }
         
-        System.out.println("Dane wejściowe:\n"
+        System.out.print("Dane wejściowe:\n"
                 + "( " + w1.toString() + " ) "
                 + Operation.getOpChar(op)
                 + " ( " + w2.toString() + " )\n"
-                + "Wynik: " + Wielomian.calculate(w1, op, w2).toString()
+                + "Wynik: "
             );
+        
+        String r = "Błąd";  //Nigdy się nie powinno pojawićbet
+        
+        switch ( op ) {
+            case ADD:
+                Wielomian.add(w1, w2).toString();
+                break;
+            case MULTIPLY:
+                r = Wielomian.multiply(w1, w2).toString();
+                break;
+            case DIVIDE:
+                Pair<Wielomian, Integer> p = Wielomian.divide(w1, w2);
+                r = p.key.toString() + "; r = " + p.value;
+                break;
+        }
+        System.out.println(r);
         
     }
     
