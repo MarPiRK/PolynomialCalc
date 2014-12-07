@@ -1,6 +1,7 @@
 package net.marpirk.dev.kalkwielomianow;
 
 import java.io.InputStream;
+import java.math.BigInteger;
 import java.util.Scanner;
 
 /**
@@ -9,6 +10,10 @@ import java.util.Scanner;
  * @author Marek Pikuła
  */
 public class A {
+    
+    public static long gcd(long a, long b) {
+        return BigInteger.valueOf(a).gcd(BigInteger.valueOf(b)).intValue();
+    }
     
     public static boolean isInteger(String s) {
         try { Integer.parseInt(s); 
