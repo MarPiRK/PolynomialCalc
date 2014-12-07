@@ -2,6 +2,8 @@ package net.marpirk.dev.kalkwielomianow;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashMapModInterface;
+
 import net.marpirk.dev.kalkwielomianow.A.Pair;
 import net.marpirk.dev.kalkwielomianow.exceptions.ParamParseException;
 
@@ -9,7 +11,9 @@ import net.marpirk.dev.kalkwielomianow.exceptions.ParamParseException;
  *
  * @author Marek Pikuła
  */
-public final class Polynomial extends HashMap<Integer, Monomial> {
+public class Polynomial extends HashMapModInterface<Integer, Monomial> {
+    
+    protected Integer highest = 0;
     
     public Polynomial() {
         super();
@@ -32,75 +36,93 @@ public final class Polynomial extends HashMap<Integer, Monomial> {
     }
     
     public void check() {
-        for ( int i = getHighest(); i >= 0; i-- ) {
+        checkHighest();
+        for ( int i = highest; i >= 0; i-- ) {
             if ( containsKey(i) && get(i).isEmpty() ) {
                 remove(i);
             }
         }
     }
     
-    public int getHighest() {
+    public int checkHighest() {
         int i = 0;
         for ( Integer tmpI : keySet() ) {
             if ( tmpI > i ) i = tmpI;
         }
+        highest = i;
         return i;
+    }
+    
+    @Override
+    public void afterNodeAccess(Node<Integer, Monomial> p) {
+        if ( p.getKey() > highest ) {
+            highest = p.getKey();
+        }
+    }
+    
+    @Override
+    public void afterNodeInsertion(boolean evict) {
+        checkHighest();
+    }
+    
+    @Override
+    public void afterNodeRemoval(Node<Integer, Monomial> p) {
+        if ( p.getKey().equals(highest) ) {
+            checkHighest();
+        }
+    }
+    
+    @Override
+    public boolean isEmpty() {
+        check();
+        return super.isEmpty();
     }
     
     @Override
     public String toString() {
         String tmpS = "";
-        for ( int i = getHighest(); i >= 0; i--) {
+        for ( int i = highest; i >= 0; i--) {
             if ( containsKey(i) ) {
-                tmpS += (get(i) != 1
-                            ? (tmpS.equals("")
-                                ? get(i)
-                                : (get(i) >= 0
-                                    ? " + " + get(i)
-                                    : " - " + (-get(i))
-                                )
-                            )
-                            : ""
-                        ) + (i == 0
-                            ? ""
-                            : (i == 1
-                                ? "x"
-                                : "x^" + i
-                            )
-                        );
+                tmpS += get(i).toString(true) + " ";
             }
         }
+        if ( tmpS.startsWith("+") ) tmpS = tmpS.substring(2);
         return tmpS;
     }
     
-    public static Polynomial add(Polynomial w1, Polynomial w2) {
-        Polynomial wr = new Polynomial(w1.j);
-        w2.keySet().stream().forEach((i) -> {
-            if ( wr.containsKey(i) ) {
-                wr.replace(i, wr.get(i) + w2.get(i));
+    public static Polynomial add(Polynomial p1, Polynomial p2) {
+        Polynomial pr = new Polynomial(p1); //polynomial result
+        p2.keySet().stream().forEach((i) -> {
+            if ( pr.containsKey(i) ) {
+                pr.replace(i, pr.get(i).add(p2.get(i)));
             } else {
-                wr.put(i, w2.get(i));
+                pr.put(i, p2.get(i));
             }
         });
-        return wr;
+        return pr;
     }
     
-    public static Polynomial multiply(Polynomial w1, Polynomial w2) {
-        Polynomial wr = new Polynomial();
-        w1.keySet().forEach((i) -> {
-            w2.keySet().forEach((j) -> {
-                if ( wr.containsKey(i + j) ) {
-                    wr.replace(i + j, wr.get(i + j) + w1.get(i) * w2.get(j));
+    public static Polynomial multiply(Polynomial p1, Polynomial p2) {
+        Polynomial pr = new Polynomial();   //polynomial result
+        p1.keySet().forEach((i) -> {
+            p2.keySet().forEach((j) -> {
+                if ( pr.containsKey(i + j) ) {
+                    pr.replace(i + j, pr.get(i + j).add(p1.get(i)).multiply(p2.get(j)));
                 } else {
-                    wr.put(i + j, w1.get(i) * w2.get(j));
+                    pr.put(i + j, p1.get(i).multiply(p2.get(j)));
                 }
             });
         });
-        return wr;
+        return pr;
     }
     
-    public static Pair<Polynomial, Polynomial> divide(Polynomial w1, Polynomial w2) {
-        return null;
+    //not yet implemendet
+    public static Pair<Polynomial, Polynomial> divide(Polynomial p1, Polynomial p2) {
+        if ( p2.size() == 2 && p2.containsKey(1) && p2.containsKey(2) ) {   //Horner's method
+            
+        } else {
+            
+        }
     }
 
 }

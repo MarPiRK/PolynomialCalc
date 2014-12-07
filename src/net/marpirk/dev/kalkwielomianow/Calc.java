@@ -3,6 +3,7 @@ package net.marpirk.dev.kalkwielomianow;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import net.marpirk.dev.kalkwielomianow.A.Pair;
 import net.marpirk.dev.kalkwielomianow.exceptions.ParamParseException;
 
@@ -40,29 +41,38 @@ public class Calc {
             System.exit(1);
         }
         
-        Polynomial tmpRes = new Polynomial(po.get(0));
+        Pair<Polynomial, Polynomial> tmpRes = new Pair<>(po.get(0), new Polynomial());
+        int i;
         System.out.println("Dane wejściowe:\n"
                 + "( " + po.get(0).toString() + " ) ");
-        for ( int i = 1; i < po.size(); i++ ) {
+        for ( i = 1; i < po.size(); i++ ) {
             System.out.print(Operation.getOpChar(op.get(i - 1))
                     + " ( " + po.get(i).toString() + " ) ");
             switch ( op.get(i - 1) ) {
                 case ADD:
-                    tmpRes = Polynomial.add(tmpRes, po.get(i)); break;
+                    tmpRes.key = Polynomial.add(tmpRes.key, po.get(i)); break;
                 case MULTIPLY:
-                    tmpRes = Polynomial.multiply(tmpRes, po.get(i)); break;
+                    tmpRes.key = Polynomial.multiply(tmpRes.key, po.get(i)); break;
                 case DIVIDE:
-                    Pair<Polynomial, Polynomial> p = Polynomial.divide(tmpRes, po.get(i));
-                    r = p.key.toString() + "; r = " + p.value;
-                    break;
+                    tmpRes = Polynomial.divide(tmpRes.key, po.get(i));
+                    if ( !tmpRes.value.isEmpty() ) {
+                        break;
+                    }
             }
         }
-        System.out.println("\nWynik: ");
+        System.out.print("\nWynik: " + tmpRes.key.toString());
         
-        String r = "Błąd";  //Nigdy się nie powinno pojawićbet
-        
-        
-        System.out.println(r);
+        if ( !tmpRes.value.isEmpty() ) {
+            if ( i == po.size() - 1 ) {
+                System.out.println("; reszta z ostatniego dzielenia: " + tmpRes.value.toString());
+            } else {
+                System.out.println("\nNie można kontynuować z powodu wystąpienia "
+                        + "reszty w dzieleniu przed końcem listy operacji.\n"
+                        + "Reszta: "
+                        + tmpRes.value.toString() + "\n"
+                        + "Przy operacji nr " + (i-1));
+            }
+        }
         
     }
     
