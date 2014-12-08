@@ -26,25 +26,4 @@ public class A {
         public Pair(K key, V value) { this.key = key; this.value = value; }
     }
     
-    /**
-     * Zwraca zasób (np. z pliku jar).
-     * 
-     * @param path ścieżka zasobu
-     * @return zasób
-     */
-    public static InputStream getResource(String path) {
-        return A.class.getResourceAsStream(path);
-    }
-    
-    /**
-     * Zwraca zasób w formie tekstu.
-     * 
-     * @param path ścieżka zasobu
-     * @return zasób
-     */
-    public static String getStringFromResource(String path) {
-        Scanner s = new Scanner(getResource(path)).useDelimiter("\\A");
-        return s.hasNext() ? s.next() : "";
-    }
-    
 }

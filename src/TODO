@@ -1,5 +1,6 @@
 TODO list:
 ~ check new multi argument operation system
-+ finish new Fraction and Monomial with letters
-+ l18n
++ finish Monomial with letters
 + rest from dividing depending on operation (rdivide/fdivide)
++ documentation
+~ check localization system (and maybe operators l18n?)

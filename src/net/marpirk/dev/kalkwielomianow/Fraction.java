@@ -4,6 +4,10 @@ public class Fraction {
     
     protected long counter, denominator;
     
+    public Fraction(double counter) {
+        set(counter, 1);
+    }
+    
     public Fraction(double counter, double denominator) {
         set(counter, denominator);
     }

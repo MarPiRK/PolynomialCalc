@@ -9,15 +9,19 @@ public enum Operation {
     }
     
     public static boolean isOperator(String s) {
-        return checkArg(s, "add") ||        //add
-                checkArg(s, "multiply") ||  //multiply
-                checkArg(s, "divide");      //divide
+        return checkArg(s, Calc.i18n.getString("OPERATION_ADD")) ||        //add
+                checkArg(s, Calc.i18n.getString("OPERATION_MULTIPLY")) ||  //multiply
+                checkArg(s, Calc.i18n.getString("OPERATION_DIVIDE"));      //divide
+    }
+    
+    public static boolean isOperator(char c) {
+        return ((c == '+') || (c == '-') || (c == '/'));
     }
     
     public static Operation getFromString(String s) {
-        if ( checkArg(s, "add") ) return ADD;
-        if ( checkArg(s, "multiply") ) return MULTIPLY;
-        if ( checkArg(s, "divide") ) return DIVIDE;
+        if ( checkArg(s, Calc.i18n.getString("OPERATION_ADD")) ) return ADD;
+        if ( checkArg(s, Calc.i18n.getString("OPERATION_MULTIPLY")) ) return MULTIPLY;
+        if ( checkArg(s, Calc.i18n.getString("OPERATION_DIVIDE")) ) return DIVIDE;
         return null;
     }
     
@@ -25,7 +29,7 @@ public enum Operation {
         switch ( o ) {
             case ADD: return '+';
             case MULTIPLY: return '*';
-            case DIVIDE: return ':';
+            case DIVIDE: return '/';
             default: return null;
         }
     }

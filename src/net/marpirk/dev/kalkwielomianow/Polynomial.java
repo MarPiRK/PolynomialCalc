@@ -29,7 +29,7 @@ public class Polynomial extends HashMapModInterface<Integer, Monomial> {
         String[] tmpS;
         for ( String s : j ) {
             tmpS = s.split("|");
-            if ( tmpS.length > 2 ) throw new ParamParseException(s, null, "błąd składni");
+            if ( tmpS.length > 2 ) throw new ParamParseException(s, null, Calc.i18n.getString("PARAM_PARSE_SYNTAX_ERROR"));
             put(Integer.parseInt(tmpS[1]), new Monomial(tmpS[0], Integer.parseInt(tmpS[1])));
         }
         check();
@@ -118,11 +118,7 @@ public class Polynomial extends HashMapModInterface<Integer, Monomial> {
     
     //not yet implemendet
     public static Pair<Polynomial, Polynomial> divide(Polynomial p1, Polynomial p2) {
-        if ( p2.size() == 2 && p2.containsKey(1) && p2.containsKey(2) ) {   //Horner's method
-            
-        } else {
-            
-        }
+        
     }
 
 }
