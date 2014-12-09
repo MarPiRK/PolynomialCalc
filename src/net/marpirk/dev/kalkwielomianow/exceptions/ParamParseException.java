@@ -1,5 +1,7 @@
 package net.marpirk.dev.kalkwielomianow.exceptions;
 
+import net.marpirk.dev.kalkwielomianow.Calc;
+
 /**
  *
  * @author Marek Pikuła
@@ -17,7 +19,7 @@ public class ParamParseException extends Exception {
             
     @Override
     public String getMessage() {
-        return "Błąd w parametrze: \"" + param + "\"" + 
+        return Calc.i18n.getString("PARAM_PARSE_ERROR_IN_PARAM") + ": \"" + param + "\"" + 
                 (error != null ? " >" + error + "<" : "") +
                 (msg != null ? " - " + msg : "");
     }
