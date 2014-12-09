@@ -4,10 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-/**
- *
- * @author Marek Pikuła
- */
 public abstract class HashMapDelegation<K,V> {
     
     private HashMap<K,V> p;
@@ -26,6 +22,10 @@ public abstract class HashMapDelegation<K,V> {
     public abstract void afterNodeInsertion(K key, V value);
     public abstract void afterNodeRemoval(K key, V value);
     
+    protected HashMap<K,V> getHashMap() {
+        return new HashMap<>(p);
+    }
+    
     public boolean isEmpty() {
         return p.isEmpty();
     }
@@ -35,9 +35,7 @@ public abstract class HashMapDelegation<K,V> {
     }
     
     public V get(K key) {
-        V r = p.get(key);
-        afterNodeAccess(key, r);
-        return r;
+        return p.get(key);
     }
     
     public V put(K key, V value) {

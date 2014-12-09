@@ -5,6 +5,7 @@ import java.util.HashMap;
 
 import net.marpirk.dev.kalkwielomianow.A.Pair;
 import net.marpirk.dev.kalkwielomianow.exceptions.ParamParseException;
+import net.marpirk.dev.kalkwielomianow.i18n.i18n;
 
 /**
  *
@@ -28,7 +29,7 @@ public class Polynomial extends HashMapDelegation<Integer, Monomial> {
         String[] tmpS;
         for ( String s : j ) {
             tmpS = s.split("|");
-            if ( tmpS.length > 2 ) throw new ParamParseException(s, null, Calc.i18n.getString("PARAM_PARSE_SYNTAX_ERROR"));
+            if ( tmpS.length > 2 ) throw new ParamParseException(s, null, i18n.ex.getString("PARAM_PARSE_SYNTAX_ERROR"));
             put(Integer.parseInt(tmpS[1]), new Monomial(tmpS[0], Integer.parseInt(tmpS[1])));
         }
         check();
@@ -89,8 +90,10 @@ public class Polynomial extends HashMapDelegation<Integer, Monomial> {
         return tmpS;
     }
     
+    //add nonstatic methods
+    //CHECK!!!
     public static Polynomial add(Polynomial p1, Polynomial p2) {
-        Polynomial pr = construct(p1); //polynomial result
+        Polynomial pr = new Polynomial(p1.getHashMap()); //polynomial result
         p2.keySet().stream().forEach((i) -> {
             if ( pr.containsKey(i) ) {
                 pr.replace(i, pr.get(i).add(p2.get(i)));
@@ -101,12 +104,13 @@ public class Polynomial extends HashMapDelegation<Integer, Monomial> {
         return pr;
     }
     
+    //CHECK!!!
     public static Polynomial multiply(Polynomial p1, Polynomial p2) {
         Polynomial pr = new Polynomial();   //polynomial result
-        p1.keySet().forEach((i) -> {
-            p2.keySet().forEach((j) -> {
+        p1.keySet().stream().forEach((i) -> {
+            p2.keySet().stream().forEach((j) -> {
                 if ( pr.containsKey(i + j) ) {
-                    pr.replace(i + j, pr.get(i + j).add(p1.get(i)).multiply(p2.get(j)));
+                    pr.replace(i + j, pr.get(i + j).add(p1.get(i).multiply(p2.get(j))));
                 } else {
                     pr.put(i + j, p1.get(i).multiply(p2.get(j)));
                 }

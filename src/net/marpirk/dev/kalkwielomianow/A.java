@@ -1,11 +1,9 @@
 package net.marpirk.dev.kalkwielomianow;
 
-import java.io.InputStream;
 import java.math.BigInteger;
-import java.util.Scanner;
 
 /**
- * A - od Additional Methods, wcześniej OtherMethods.
+ * A - from Additional Methods.
  * 
  * @author Marek Pikuła
  */

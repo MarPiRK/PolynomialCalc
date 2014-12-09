@@ -1,16 +1,15 @@
 package net.marpirk.dev.kalkwielomianow.exceptions;
 
-import net.marpirk.dev.kalkwielomianow.Calc;
+import net.marpirk.dev.kalkwielomianow.i18n.i18n;
 
-/**
- *
- * @author Marek Pikuła
- */
 public class ParamParseException extends Exception {
     
     public String param, error, msg;
 
-    public ParamParseException() { }
+    public ParamParseException(String param) {
+        this.param = param;
+    }
+    
     public ParamParseException(String param, String error, String msg) {
         this.param = param;
         this.error = error;
@@ -19,7 +18,7 @@ public class ParamParseException extends Exception {
             
     @Override
     public String getMessage() {
-        return Calc.i18n.getString("PARAM_PARSE_ERROR_IN_PARAM") + ": \"" + param + "\"" + 
+        return i18n.ex.getString("PARAM_PARSE_ERROR_IN_PARAM") + ": \"" + param + "\"" + 
                 (error != null ? " >" + error + "<" : "") +
                 (msg != null ? " - " + msg : "");
     }

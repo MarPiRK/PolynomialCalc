@@ -2,12 +2,12 @@ package net.marpirk.dev.kalkwielomianow;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.marpirk.dev.kalkwielomianow.A.Pair;
 import net.marpirk.dev.kalkwielomianow.exceptions.ParamParseException;
+import net.marpirk.dev.kalkwielomianow.i18n.i18n;
 
 public class Calc {
 
@@ -15,7 +15,6 @@ public class Calc {
     private static ArrayList<Operation> op;     //operations
     
     private final static Logger log = Logger.getLogger(Calc.class.getName());
-    public static final ResourceBundle i18n = ResourceBundle.getBundle("net/marpirk/dev/kalkwielomianow/i18n/i18n");
     
     public static void main(String[] args) {
         try {
@@ -23,7 +22,7 @@ public class Calc {
             for ( String s : args ) {
                 if ( Operation.isOperator(s) ) {
                     if ( wTmpArr.isEmpty() ) {
-                        throw new ParamParseException(s, null, i18n.getString("PARAM_PARSE_OPERATOR_SHOULD_BE_BETWEEN"));
+                        throw new ParamParseException(s, null, i18n.ex.getString("PARAM_PARSE_OPERATOR_SHOULD_BE_BETWEEN"));
                     } else {
                         op.add(Operation.getFromString(s));
                         po.add(new Polynomial(wTmpArr));
@@ -32,7 +31,7 @@ public class Calc {
                 } else {
                     for ( char c : s.toCharArray() ) {
                         if ( A.isInteger(c + "") || c == '|' || Operation.isOperator(c) || Character.isLetter(c) ) {
-                            throw new ParamParseException(s, c + "", i18n.getString("PARAM_PARSE_WRONG_CHARACTER"));
+                            throw new ParamParseException(s, c + "", i18n.ex.getString("PARAM_PARSE_WRONG_CHARACTER"));
                         }
                     }
                     wTmpArr.add(s);
@@ -46,7 +45,7 @@ public class Calc {
         
         Pair<Polynomial, Polynomial> tmpRes = new Pair<>(po.get(0), new Polynomial());
         int i;
-        System.out.println(i18n.getString("RESULT_INPUT_DATA") + ":\n"
+        System.out.println(i18n.base.getString("RESULT_INPUT_DATA") + ":\n"
                 + "( " + po.get(0).toString() + " ) ");
         for ( i = 1; i < po.size(); i++ ) {
             System.out.print(Operation.getOpChar(op.get(i - 1))
@@ -63,16 +62,16 @@ public class Calc {
                     }
             }
         }
-        System.out.print("\n" + i18n.getString("RESULT_RESULT") + ": " + tmpRes.key.toString());
+        System.out.print("\n" + i18n.base.getString("RESULT_RESULT") + ": " + tmpRes.key.toString());
         
         if ( !tmpRes.value.isEmpty() ) {
             if ( i == po.size() - 1 ) {
-                System.out.println("; " + i18n.getString("RESULT_REST_1") + ": " + tmpRes.value.toString());
+                System.out.println("; " + i18n.base.getString("RESULT_REST_1") + ": " + tmpRes.value.toString());
             } else {
                 //calculating interrupted
-                System.out.println("\n" + i18n.getString("RESULT_REST_2") + "\n"
-                        + i18n.getString("RESULT_REST") + ": " + tmpRes.value.toString() + "\n"
-                        + MessageFormat.format(i18n.getString("RESULT_REST_2_OPERATION_NR"), new Object[] {(i-1)}));
+                System.out.println("\n" + i18n.base.getString("RESULT_REST_2") + "\n"
+                        + i18n.base.getString("RESULT_REST") + ": " + tmpRes.value.toString() + "\n"
+                        + MessageFormat.format(i18n.base.getString("RESULT_REST_2_OPERATION_NR"), new Object[] {(i-1)}));
             }
         }
         

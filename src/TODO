@@ -3,3 +3,5 @@ TODO list:
 + finish Monomial with letters
 + rest from dividing depending on operation (rdivide/fdivide)
 + documentation
++ add nonstatic Polynomial operations
+~ check Polynomial operations
