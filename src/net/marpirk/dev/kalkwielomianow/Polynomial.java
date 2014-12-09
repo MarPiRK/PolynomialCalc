@@ -2,7 +2,6 @@ package net.marpirk.dev.kalkwielomianow;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashMapModInterface;
 
 import net.marpirk.dev.kalkwielomianow.A.Pair;
 import net.marpirk.dev.kalkwielomianow.exceptions.ParamParseException;
@@ -11,7 +10,7 @@ import net.marpirk.dev.kalkwielomianow.exceptions.ParamParseException;
  *
  * @author Marek Pikuła
  */
-public class Polynomial extends HashMapModInterface<Integer, Monomial> {
+public class Polynomial extends HashMapDelegation<Integer, Monomial> {
     
     protected Integer highest = 0;
     
@@ -25,7 +24,7 @@ public class Polynomial extends HashMapModInterface<Integer, Monomial> {
     }
     
     public Polynomial(ArrayList<String> j) throws NumberFormatException, ParamParseException {
-        super();
+        construct();
         String[] tmpS;
         for ( String s : j ) {
             tmpS = s.split("|");
@@ -54,20 +53,20 @@ public class Polynomial extends HashMapModInterface<Integer, Monomial> {
     }
     
     @Override
-    public void afterNodeAccess(Node<Integer, Monomial> p) {
-        if ( p.getKey() > highest ) {
-            highest = p.getKey();
+    public void afterNodeAccess(Integer key, Monomial value) {
+        if ( key > highest ) {
+            highest = key;
         }
     }
     
     @Override
-    public void afterNodeInsertion(boolean evict) {
-        checkHighest();
+    public void afterNodeInsertion(Integer key, Monomial value) {
+        afterNodeAccess(key, value);
     }
     
     @Override
-    public void afterNodeRemoval(Node<Integer, Monomial> p) {
-        if ( p.getKey().equals(highest) ) {
+    public void afterNodeRemoval(Integer key, Monomial value) {
+        if ( key.equals(highest) ) {
             checkHighest();
         }
     }
@@ -91,7 +90,7 @@ public class Polynomial extends HashMapModInterface<Integer, Monomial> {
     }
     
     public static Polynomial add(Polynomial p1, Polynomial p2) {
-        Polynomial pr = new Polynomial(p1); //polynomial result
+        Polynomial pr = construct(p1); //polynomial result
         p2.keySet().stream().forEach((i) -> {
             if ( pr.containsKey(i) ) {
                 pr.replace(i, pr.get(i).add(p2.get(i)));

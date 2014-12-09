@@ -15,7 +15,7 @@ public class Calc {
     private static ArrayList<Operation> op;     //operations
     
     private final static Logger log = Logger.getLogger(Calc.class.getName());
-    public static final ResourceBundle i18n = ResourceBundle.getBundle("net/marpirk/dev/kalkwielomianow/i18n");
+    public static final ResourceBundle i18n = ResourceBundle.getBundle("net/marpirk/dev/kalkwielomianow/i18n/i18n");
     
     public static void main(String[] args) {
         try {
