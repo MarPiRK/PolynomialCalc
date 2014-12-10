@@ -1,4 +1,4 @@
-package net.marpirk.dev.kalkwielomianow.i18n;
+package net.marpirk.dev.polynomialcalc.i18n;
 
 import java.util.ResourceBundle;
 

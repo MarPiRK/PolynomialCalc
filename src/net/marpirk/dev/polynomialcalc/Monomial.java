@@ -1,11 +1,11 @@
-package net.marpirk.dev.kalkwielomianow;
+package net.marpirk.dev.polynomialcalc;
 
 import java.util.Arrays;
 import java.util.HashMap;
 
-import net.marpirk.dev.kalkwielomianow.A.Pair;
-import net.marpirk.dev.kalkwielomianow.exceptions.MonomialPowerMismatchException;
-import net.marpirk.dev.kalkwielomianow.i18n.i18n;
+import net.marpirk.dev.polynomialcalc.A.Pair;
+import net.marpirk.dev.polynomialcalc.exceptions.MonomialPowerMismatchException;
+import net.marpirk.dev.polynomialcalc.i18n.i18n;
 
 /**
  *

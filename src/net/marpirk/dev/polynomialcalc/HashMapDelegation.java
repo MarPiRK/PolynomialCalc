@@ -1,4 +1,4 @@
-package net.marpirk.dev.kalkwielomianow;
+package net.marpirk.dev.polynomialcalc;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -81,8 +81,6 @@ public abstract class HashMapDelegation<K,V> {
     public Set<K> keySet() {
         return p.keySet();
     }
-    
-    angielski Challenge/8
     
 
 }

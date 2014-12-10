@@ -1,6 +1,6 @@
-package net.marpirk.dev.kalkwielomianow;
+package net.marpirk.dev.polynomialcalc;
 
-import net.marpirk.dev.kalkwielomianow.i18n.i18n;
+import net.marpirk.dev.polynomialcalc.i18n.i18n;
 
 public enum Operation {
     ADD, MULTIPLY, DIVIDE;

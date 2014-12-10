@@ -1,7 +1,7 @@
-package net.marpirk.dev.kalkwielomianow.exceptions;
+package net.marpirk.dev.polynomialcalc.exceptions;
 
 import java.text.MessageFormat;
-import net.marpirk.dev.kalkwielomianow.i18n.i18n;
+import net.marpirk.dev.polynomialcalc.i18n.i18n;
 
 /**
  *

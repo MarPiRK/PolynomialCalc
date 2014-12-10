@@ -1,4 +1,4 @@
-package net.marpirk.dev.kalkwielomianow;
+package net.marpirk.dev.polynomialcalc;
 
 import java.math.BigInteger;
 
