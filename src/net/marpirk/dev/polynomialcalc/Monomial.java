@@ -106,13 +106,13 @@ public class Monomial extends HashMap<String, Fraction> {
         return String.copyValueOf(c);
     }
     
-    public Pair<Monomial, Monomial> divide(Monomial m2) {
+    public Pair<Monomial, Monomial> divide(Monomial m2) throws MonomialPowerMismatchException {
         return divide(this, m2);
     }
     
     //not yet implemendet
-    public static Pair<Monomial, Monomial> divide(Monomial m1, Monomial m2) {
-        
+    public static Pair<Monomial, Monomial> divide(Monomial m1, Monomial m2) throws MonomialPowerMismatchException {
+        if ( m1.power < m2.power) throw new MonomialPowerMismatchException(i18n.base.getString("OPERATION_DIVIDE"), i18n.ex.getString("MONOMIAL_POWER_REASON_DIVIDE"), m1.power, m2.power);
     }
 
 }

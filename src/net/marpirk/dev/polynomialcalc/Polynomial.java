@@ -2,8 +2,11 @@ package net.marpirk.dev.polynomialcalc;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import net.marpirk.dev.polynomialcalc.A.Pair;
+import net.marpirk.dev.polynomialcalc.exceptions.MonomialPowerMismatchException;
 import net.marpirk.dev.polynomialcalc.exceptions.ParamParseException;
 import net.marpirk.dev.polynomialcalc.i18n.i18n;
 
@@ -35,7 +38,7 @@ public class Polynomial extends HashMapDelegation<Integer, Monomial> {
         check();
     }
     
-    public void check() {
+    public final void check() {
         checkHighest();
         for ( int i = highest; i >= 0; i-- ) {
             if ( containsKey(i) && get(i).isEmpty() ) {
@@ -90,13 +93,20 @@ public class Polynomial extends HashMapDelegation<Integer, Monomial> {
         return tmpS;
     }
     
-    //add nonstatic methods
-    //CHECK!!!
+    public Polynomial add(Polynomial p2) {
+        return add(this, p2);
+    }
+    
     public static Polynomial add(Polynomial p1, Polynomial p2) {
         Polynomial pr = new Polynomial(p1.getHashMap()); //polynomial result
         p2.keySet().stream().forEach((i) -> {
             if ( pr.containsKey(i) ) {
-                pr.replace(i, pr.get(i).add(p2.get(i)));
+                try {
+                    pr.replace(i, pr.get(i).add(p2.get(i)));
+                } catch (MonomialPowerMismatchException ex) {
+                        Logger.getLogger(Polynomial.class.getName()).log(Level.SEVERE, null, ex);   //for future removal - shouldn't never occur
+                        System.exit(1000);
+                }
             } else {
                 pr.put(i, p2.get(i));
             }
@@ -104,19 +114,31 @@ public class Polynomial extends HashMapDelegation<Integer, Monomial> {
         return pr;
     }
     
-    //CHECK!!!
+    public Polynomial multiply(Polynomial p2) {
+        return multiply(this, p2);
+    }
+    
     public static Polynomial multiply(Polynomial p1, Polynomial p2) {
         Polynomial pr = new Polynomial();   //polynomial result
         p1.keySet().stream().forEach((i) -> {
             p2.keySet().stream().forEach((j) -> {
                 if ( pr.containsKey(i + j) ) {
-                    pr.replace(i + j, pr.get(i + j).add(p1.get(i).multiply(p2.get(j))));
+                    try {
+                        pr.replace(i + j, pr.get(i + j).add(p1.get(i).multiply(p2.get(j))));
+                    } catch (MonomialPowerMismatchException ex) {
+                        Logger.getLogger(Polynomial.class.getName()).log(Level.SEVERE, null, ex);   //for future removal - shouldn't never occur
+                        System.exit(1000);
+                    }
                 } else {
                     pr.put(i + j, p1.get(i).multiply(p2.get(j)));
                 }
             });
         });
         return pr;
+    }
+    
+    public Pair<Polynomial, Polynomial> divide(Polynomial p2) {
+        return divide(this, p2);
     }
     
     //not yet implemendet
