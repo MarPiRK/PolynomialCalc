@@ -1,6 +1,7 @@
 package net.marpirk.dev.polynomialcalc;
 
 import java.util.HashMap;
+import java.util.function.Function;
 
 import net.marpirk.dev.polynomialcalc.exceptions.NotNumberFractionException;
 import net.marpirk.dev.polynomialcalc.i18n.i18n;
@@ -224,7 +225,7 @@ public class Fraction {
         String op = ( spaces ? ' ' + divisionChar + ' ' : divisionChar ) + "";
         if ( isNumberFraction() ) {
             if ( exact ) {
-                try { return getValue() + ""; } catch (NotNumberFractionException ex) { } //will never occur - on the beginning is isNumberFraction check
+                try { return getValue() + ""; } catch (NotNumberFractionException ex) { return null; } //will never occur - on the beginning is isNumberFraction check
             } else {
                 long num = numerator.get("");
                 long den = denominator.get("");     //will never be lower than 0
@@ -248,8 +249,23 @@ public class Fraction {
             }
         } else {
             String space = ( spaces ? " " : "" );
-            String numS = "";
-            //to implement
+            
+            Function<HashMap<String, Long>, String> partToString = m -> {
+                String r = "";
+                Long num;
+                for ( String s : m.keySet() ) {
+                    num = m.get(s);
+                    if ( operator ) r = ( num >= 0 ? "+" : "-" );
+                               else r = ( num >=0 ? "" : "-" );
+                    if ( spaces && r.length() > 0 ) r += " ";
+                    if ( one && num != 1 && num != -1) r += num;
+                    if ( spaces && r.length() > 0 ) r += " "; //hmmm is it possible to implemend it better?
+                    r += s + space;
+                }
+                return r;
+            };
+            
+            String numS = partToString.apply(numerator);
                 
             //if denominator map is small it's not necessary to check it like numerator
             if ( denominator.isEmpty() || (denominator.size() == 1 && denominator.containsKey("") && denominator.get("") == 1) ) {
@@ -258,10 +274,9 @@ public class Fraction {
                 return '(' + space + numS + space + ')' + op + denominator.get("");
             }
             
-            String denS = "";
-            //to implement
+            String denS = partToString.apply(denominator);
             
-            return '(' + space + numS + space + ')' + op + '(' + space + denominator.get("") + space + ')';
+            return '(' + space + numS + space + ')' + op + '(' + space + denS + space + ')';
         }
     }
     
@@ -283,12 +298,55 @@ public class Fraction {
         return new Fraction(f.getDenominator(), f.getNumerator());
     }
     
+    protected static HashMap<String, Long> addHashMaps(HashMap<String, Long> h1, HashMap<String, Long> h2){
+        HashMap<String, Long> hr = new HashMap<>(h1);
+        h2.keySet().parallelStream().forEach((k) -> {
+            if ( hr.containsKey(k) ) {
+                hr.replace(k, hr.get(k) + h2.get(k));
+            } else {
+                hr.put(k, h2.get(k));
+            }
+        });
+        return hr;
+    }
+    
     public Fraction add(Fraction f2) {
         return add(this, f2);
     }
     
     public static Fraction add(Fraction f1, Fraction f2) {
-        return new Fraction( (f1.getNumerator() * f2.getDenominator() + f2.getNumerator() * f1.getDenominator()), (f1.getDenominator() * f2.getDenominator()) );
+        return new Fraction(
+                addHashMaps(
+                        multiplyHashMaps(
+                                f1.getNumerator(),
+                                f2.getDenominator()
+                        ),
+                        multiplyHashMaps(
+                                f2.getNumerator(),
+                                f1.getDenominator()
+                        )
+                ),
+                multiplyHashMaps(
+                        f1.getDenominator(),
+                        f2.getDenominator()
+                )
+            );
+    }
+    
+    protected static HashMap<String, Long> multiplyHashMaps(HashMap<String, Long> h1, HashMap<String, Long> h2) {
+        HashMap<String, Long> hr = new HashMap<>();
+        String sr;
+        for ( String k1 : h1.keySet() ) {
+            for ( String k2 : h2.keySet() ) {
+                sr = A.sortStringChars(k1 + k2);
+                if ( hr.containsKey(sr) ) {
+                    hr.replace(sr, hr.get(sr) + h1.get(k1) * h2.get(k2));
+                } else {
+                    hr.put(sr, h1.get(k1) * h2.get(k2));
+                }
+            }
+        }
+        return hr;
     }
     
     public Fraction multiply(Fraction f2) {
@@ -296,7 +354,16 @@ public class Fraction {
     }
     
     public static Fraction multiply(Fraction f1, Fraction f2) {
-        return new Fraction(f1.numerator * f2.numerator, f1.denominator * f2.denominator);
+        return new Fraction(
+                multiplyHashMaps(
+                        f1.numerator,
+                        f2.numerator
+                ),
+                multiplyHashMaps(
+                        f1.denominator,
+                        f2.denominator
+                )
+            );
     }
     
     public Fraction divide(Fraction f2) {

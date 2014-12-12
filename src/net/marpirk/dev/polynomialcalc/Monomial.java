@@ -1,6 +1,5 @@
 package net.marpirk.dev.polynomialcalc;
 
-import java.util.Arrays;
 import java.util.HashMap;
 
 import net.marpirk.dev.polynomialcalc.A.Pair;
@@ -88,7 +87,7 @@ public class Monomial extends HashMap<String, Fraction> {
         Monomial mr = new Monomial();   //polynomial result
         m1.keySet().stream().forEach((s1) -> {
             m2.keySet().stream().forEach((s2) -> {
-                String key = setAlphabetically(s1 + s2);
+                String key = A.sortStringChars(s1 + s2);
                 if ( mr.containsKey(key) ) {
                     mr.replace(key, mr.get(key).add(m1.get(s1).multiply(m2.get(s2))));
                 } else {
@@ -98,12 +97,6 @@ public class Monomial extends HashMap<String, Fraction> {
         });
         mr.power = m1.power + m2.power;
         return mr;
-    }
-    
-    protected static String setAlphabetically(String s) {
-        char[] c = s.toCharArray();
-        Arrays.sort(c);
-        return String.copyValueOf(c);
     }
     
     public Pair<Monomial, Monomial> rdivide(Monomial m2) throws MonomialPowerMismatchException {
