@@ -29,7 +29,7 @@ public class Monomial extends HashMap<String, Fraction> {
         this.power = power;
         
         for ( char c : toParse.toCharArray() ) {
-            //not yet implemendet
+            throw new UnsupportedOperationException();
         }
     }
     
@@ -106,13 +106,21 @@ public class Monomial extends HashMap<String, Fraction> {
         return String.copyValueOf(c);
     }
     
-    public Pair<Monomial, Monomial> divide(Monomial m2) throws MonomialPowerMismatchException {
-        return divide(this, m2);
+    public Pair<Monomial, Monomial> rdivide(Monomial m2) throws MonomialPowerMismatchException {
+        return rdivide(this, m2);
     }
     
-    //not yet implemendet
-    public static Pair<Monomial, Monomial> divide(Monomial m1, Monomial m2) throws MonomialPowerMismatchException {
+    //dividing with rest
+    public static Pair<Monomial, Monomial> rdivide(Monomial m1, Monomial m2) throws MonomialPowerMismatchException {
         if ( m1.power < m2.power) throw new MonomialPowerMismatchException(i18n.base.getString("OPERATION_DIVIDE"), i18n.ex.getString("MONOMIAL_POWER_REASON_DIVIDE"), m1.power, m2.power);
+        //for now division only for monomials without letters
+        if ( m1.size() == 1 && m1.containsKey("") && m2.size() == 1 && m2.containsKey("") ) {
+            Pair<Monomial, Monomial> mr = new Pair(new Monomial(m1), new Monomial());
+            mr.key.put("", m1.get("").divide(m2.get("")));
+            mr.
+        } else {
+            throw new UnsupportedOperationException(i18n.ex.getString("DIVISION_UNSUPPORTED_LETTER_DIVISION"));
+        }
     }
 
 }

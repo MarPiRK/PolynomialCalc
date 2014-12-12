@@ -1,6 +1,5 @@
 package net.marpirk.dev.polynomialcalc;
 
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -8,6 +7,7 @@ import java.util.logging.Logger;
 import net.marpirk.dev.polynomialcalc.A.Pair;
 import net.marpirk.dev.polynomialcalc.exceptions.ParamParseException;
 import net.marpirk.dev.polynomialcalc.i18n.i18n;
+import net.marpirk.dev.polynomialcalc.i18n.i18nt;
 
 public class Calc {
 
@@ -71,7 +71,7 @@ public class Calc {
                 //calculating interrupted
                 System.out.println("\n" + i18n.base.getString("RESULT_REST_2") + "\n"
                         + i18n.base.getString("RESULT_REST") + ": " + tmpRes.value.toString() + "\n"
-                        + MessageFormat.format(i18n.base.getString("RESULT_REST_2_OPERATION_NR"), new Object[] {(i-1)}));
+                        + i18n.getMessage(i18nt.BASE, "RESULT_REST_2_OPERATION_NR", (i-1)));
             }
         }
         

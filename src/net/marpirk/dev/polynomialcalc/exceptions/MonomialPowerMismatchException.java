@@ -1,7 +1,8 @@
 package net.marpirk.dev.polynomialcalc.exceptions;
 
-import java.text.MessageFormat;
+
 import net.marpirk.dev.polynomialcalc.i18n.i18n;
+import net.marpirk.dev.polynomialcalc.i18n.i18nt;
 
 /**
  *
@@ -21,7 +22,7 @@ public class MonomialPowerMismatchException extends Exception {
     
     @Override
     public String getMessage() {
-        return MessageFormat.format(i18n.ex.getString("MONOMIAL_POWER_MSG"), new Object[] {operation, reason, p1, p2});
+        return i18n.getMessage(i18nt.EX, "MONOMIAL_POWER_MSG", operation, reason, p1, p2);
     }
 
 }
