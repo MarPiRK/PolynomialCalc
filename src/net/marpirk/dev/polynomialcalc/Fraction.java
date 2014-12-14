@@ -1,8 +1,9 @@
 package net.marpirk.dev.polynomialcalc;
 
 import java.util.HashMap;
-import java.util.function.Function;
+import java.util.Set;
 
+import net.marpirk.dev.polynomialcalc.exceptions.DivisionByZeroFractionException;
 import net.marpirk.dev.polynomialcalc.exceptions.NotNumberFractionException;
 import net.marpirk.dev.polynomialcalc.i18n.i18n;
 
@@ -18,36 +19,49 @@ public class Fraction {
     /** Denominator in Fraction. */
     protected HashMap<String, Long> denominator;
     
-    /** Creates Fraction=1/1. */
+    /** Creates number Fraction = 1/1. */
     public Fraction() {
-        set(1, 1);
+        try { set(1, 1);
+        } catch (DivisionByZeroFractionException ex) { }    //will never occur
     }
     
     /**
-     * Creates number Fraction with denominator=1.
-     * @param numerator Fraction numerator
+     * Creates number Fraction with denominator = 1.
+     * @param numerator Fraction number numerator
      */
     public Fraction(double numerator) {
-        set(numerator, 1);
+        try { set(numerator, 1);
+        } catch (DivisionByZeroFractionException ex) { }    //will never occur
     }
     
+    /**
+     * Creates Fraction with number denominator = 1.
+     * @param numerator Fraction numerator
+     */
     public Fraction(HashMap<String, Long> numerator) {
         HashMap<String, Long> den = new HashMap<>();
         den.put("", 1L);
-        set(numerator, den);
+        try { set(numerator, den);
+        } catch (DivisionByZeroFractionException ex) { }    //will never occur
     }
     
     /**
-     * Creates number Fraction with given numerator and denominator.
+     * Creates number Fraction with given double numerator and denominator.
      * @param numerator Fraction numerator
      * @param denominator Fraction denominator
-     * @throws ArithmeticException thrown when denominator is 0
+     * @throws DivisionByZeroFractionException thrown when denominator is 0
      */
-    public Fraction(double numerator, double denominator) throws ArithmeticException {
+    public Fraction(double numerator, double denominator) throws DivisionByZeroFractionException {
         set(numerator, denominator);
     }
     
-    public Fraction(HashMap<String, Long> numerator, HashMap<String, Long> denominator) throws ArithmeticException {
+    /**
+     * Creates Fraction with given numerator and denominator.
+     * @param numerator Fraction numerator
+     * @param denominator Fraction denominator
+     * @throws DivisionByZeroFractionException thrown when all denominator elements have 0 value
+     */
+    public Fraction(HashMap<String, Long> numerator, HashMap<String, Long> denominator) throws DivisionByZeroFractionException {
         set(numerator, denominator);
     }
     
@@ -56,28 +70,42 @@ public class Fraction {
      * @param f Fraction to copy
      */
     public Fraction(Fraction f) {
-        set(f.getNumerator(), f.getDenominator());
+        try { set(f.getNumerator(), f.getDenominator());
+        } catch (DivisionByZeroFractionException ex) { }    //will never occur
     }
     
     /**
      * Reduces Fraction and checks signs (just for esthetic).
      * @return reduced Fraction
      */
-    public final Fraction check() {
+    public final Fraction check() throws DivisionByZeroFractionException {
+        //removes unneeded (zero) elements
+        Set<String> keySet = numerator.keySet();
+        keySet.parallelStream().filter((s) -> ( numerator.get(s) == 0 )).forEach((s) -> {
+            numerator.remove(s);
+        });
+        
+        keySet = denominator.keySet();
+        keySet.parallelStream().filter((s) -> ( denominator.get(s) == 0 )).forEach((s) -> {
+            denominator.remove(s);
+        });
+        
+        if ( numerator.isEmpty() ) {
+            denominator.clear();        //just to save memory
+            denominator.put("", 1L);
+        } else if ( denominator.isEmpty() ) throw new DivisionByZeroFractionException(partToString(numerator, false, false, true), partToString(denominator, false, false, true));
+        
+        //check if changing sign is necessary
         boolean changeSign = false;
         if ( isNumberFraction() && denominator.get("") < 0 ) {  //in case of for example: -2/-25 (to 2/25) or 2/-25 (to -2/25)
             changeSign = true;
-            numerator.replace("", numerator.get("") * -1);
-            denominator.replace("", denominator.get("") * -1);
         } else {    //checks denominator - if there is more minuses than pluses then it changes sign (only visual aspect)
             int denPlusCount = 0;
             denPlusCount = denominator.values().parallelStream().filter((l) -> ( l > 0 )).map((_item) -> 1).reduce(denPlusCount, Integer::sum); //thanks NetBeans - if you did it wrong I'll be very angry!!!
-            if ( denPlusCount < denominator.values().size() ) {
-                changeSign = true;
-            }
+            if ( denPlusCount < denominator.values().size() - denPlusCount ) changeSign = true;
         }
         
-        //check greatest common divisor to 
+        //check greatest common divisor to reduce
         long gcd = (Long) numerator.values().toArray()[0];
         for (Long l : numerator.values()) {
             gcd = A.gcd(gcd, l);
@@ -152,8 +180,12 @@ public class Fraction {
                 / Math.pow(10, decimalPlaces);
     }
     
-    public final Fraction set(double numerator, double denominator) {
-        if ( denominator == 0 ) throw new ArithmeticException(i18n.base.getString("DIVISION_BY_0") + " " + i18n.base.getString("IN_FRACTION") + " " + numerator + "/" + denominator);
+    
+    
+    public final Fraction set(double numerator, double denominator) throws DivisionByZeroFractionException {
+        if ( denominator == 0 ) throw new DivisionByZeroFractionException(numerator + "");
+        
+        //extend to remove comma in num/den
         int decPlaces = checkDecPlaces(numerator, denominator);
         
         HashMap<String, Long> num = new HashMap<>();
@@ -171,10 +203,10 @@ public class Fraction {
      * @param numerator Fraction numerator
      * @param denominator Fraction denominator
      * @return checked and reduced Fraction
-     * @throws ArithmeticException thrown when denominator=0
+     * @throws DivisionByZeroFractionException thrown when denominator = 0
      * @see check()
      */
-    public final Fraction set(HashMap<String, Long> numerator, HashMap<String, Long> denominator) throws ArithmeticException {
+    public final Fraction set(HashMap<String, Long> numerator, HashMap<String, Long> denominator) throws DivisionByZeroFractionException {
         this.numerator = numerator;
         this.denominator = denominator;
         return check();
@@ -195,7 +227,8 @@ public class Fraction {
      * @see set(double numerator, double denumerator)
      */
     public Fraction setNumerator(HashMap<String, Long> numerator) {
-        return set(numerator, this.denominator);
+        try { return set(numerator, this.denominator);
+        } catch (DivisionByZeroFractionException ex) { return null; }   //will never occur
     }
     
     /**
@@ -212,7 +245,7 @@ public class Fraction {
      * @return checked and reduced Fraction
      * @see set(double numerator, double denumerator)
      */
-    public Fraction setDenominator(HashMap<String, Long> denominator) {
+    public Fraction setDenominator(HashMap<String, Long> denominator) throws DivisionByZeroFractionException {
         return set(this.numerator, denominator);
     }
     
@@ -221,6 +254,21 @@ public class Fraction {
         return toString(false, true, false, true, '/');
     }
     
+    protected static String partToString(HashMap<String, Long> m, boolean operator, boolean one, boolean spaces) {
+        String r = "";
+        Long num;
+        for ( String s : m.keySet() ) {
+            num = m.get(s);
+            if ( operator ) r = ( num >= 0 ? "+" : "-" );
+                else        r = ( num >=0 ? "" : "-" );
+            if ( spaces && r.length() > 0 ) r += " ";
+            if ( (one) || (num != 1 && num != -1) ) r += num;
+            if ( spaces && r.length() > 0 ) r += " ";
+            r += s + ( spaces ? " " : "" );
+        }
+        return r;
+    };
+    
     public String toString(boolean exact, boolean operator, boolean one, boolean spaces, char divisionChar) {
         String op = ( spaces ? ' ' + divisionChar + ' ' : divisionChar ) + "";
         if ( isNumberFraction() ) {
@@ -228,7 +276,10 @@ public class Fraction {
                 try { return getValue() + ""; } catch (NotNumberFractionException ex) { return null; } //will never occur - on the beginning is isNumberFraction check
             } else {
                 long num = numerator.get("");
+                if ( num == 0 ) return "0";
+                
                 long den = denominator.get("");     //will never be lower than 0
+                
                 String numS, denS;
                 if ( operator ) {
                     numS = ( num >=0 ? "+" : "-" );
@@ -248,24 +299,11 @@ public class Fraction {
                 return numS + ( den != 1 ? op + denS : "" );
             }
         } else {
+            if ( numerator.isEmpty() ) return "0";
+            
             String space = ( spaces ? " " : "" );
             
-            Function<HashMap<String, Long>, String> partToString = m -> {
-                String r = "";
-                Long num;
-                for ( String s : m.keySet() ) {
-                    num = m.get(s);
-                    if ( operator ) r = ( num >= 0 ? "+" : "-" );
-                               else r = ( num >=0 ? "" : "-" );
-                    if ( spaces && r.length() > 0 ) r += " ";
-                    if ( one && num != 1 && num != -1) r += num;
-                    if ( spaces && r.length() > 0 ) r += " "; //hmmm is it possible to implemend it better?
-                    r += s + space;
-                }
-                return r;
-            };
-            
-            String numS = partToString.apply(numerator);
+            String numS = partToString(numerator, operator, one, spaces);
                 
             //if denominator map is small it's not necessary to check it like numerator
             if ( denominator.isEmpty() || (denominator.size() == 1 && denominator.containsKey("") && denominator.get("") == 1) ) {
@@ -274,7 +312,7 @@ public class Fraction {
                 return '(' + space + numS + space + ')' + op + denominator.get("");
             }
             
-            String denS = partToString.apply(denominator);
+            String denS = partToString(denominator, operator, one, spaces);
             
             return '(' + space + numS + space + ')' + op + '(' + space + denS + space + ')';
         }

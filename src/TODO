@@ -1,5 +1,6 @@
 TODO list:
 ~ check new multi argument operation system
++ parameter parsing mechanism
 + finish Monomial with letters
 + rest from dividing depending on operation (rdivide/fdivide)
 + documentation

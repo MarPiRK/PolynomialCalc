@@ -1,7 +1,5 @@
 package net.marpirk.dev.polynomialcalc;
 
-import java.util.HashMap;
-
 import net.marpirk.dev.polynomialcalc.A.Pair;
 import net.marpirk.dev.polynomialcalc.exceptions.MonomialPowerMismatchException;
 import net.marpirk.dev.polynomialcalc.i18n.i18n;
@@ -10,9 +8,10 @@ import net.marpirk.dev.polynomialcalc.i18n.i18n;
  *
  * @author Marek Pikuła
  */
-public class Monomial extends HashMap<String, Fraction> {
+public class Monomial {
     
-    public int power; //wykładnik
+    public Fraction coefficient;
+    public int power;
     
     public Monomial() {
         super();
