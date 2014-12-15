@@ -75,6 +75,18 @@ public class Fraction {
     }
     
     /**
+     * Checks if given Fraction kind of HashMap ({@literal <}String, Long{@literal >}) is zero.
+     * @param h 
+     * @return 
+     */
+    protected static boolean isHashMapZero(HashMap<String, Long> h) {
+        if ( h.isEmpty() ) return true;
+        int zeroCount = 0;
+        zeroCount = h.keySet().parallelStream().filter((s) -> ( h.get(s) == 0 )).map((_item) -> 1).reduce(zeroCount, Integer::sum);
+        return (zeroCount == h.size());
+    }
+    
+    /**
      * Reduces Fraction and checks signs (just for esthetic).
      * @return reduced Fraction
      */
@@ -328,11 +340,11 @@ public class Fraction {
         return getValue(decimalPlaces) + "";
     }
     
-    public void inverse() {
+    public void inverse() throws DivisionByZeroFractionException {
         set(denominator, numerator);
     }
     
-    public static Fraction inverse(Fraction f) {
+    public static Fraction inverse(Fraction f) throws DivisionByZeroFractionException {
         return new Fraction(f.getDenominator(), f.getNumerator());
     }
     
@@ -353,22 +365,24 @@ public class Fraction {
     }
     
     public static Fraction add(Fraction f1, Fraction f2) {
-        return new Fraction(
-                addHashMaps(
-                        multiplyHashMaps(
-                                f1.getNumerator(),
-                                f2.getDenominator()
-                        ),
-                        multiplyHashMaps(
-                                f2.getNumerator(),
-                                f1.getDenominator()
-                        )
-                ),
-                multiplyHashMaps(
-                        f1.getDenominator(),
-                        f2.getDenominator()
-                )
+        try {
+            return new Fraction(
+                    addHashMaps(
+                            multiplyHashMaps(
+                                    f1.getNumerator(),
+                                    f2.getDenominator()
+                            ),
+                            multiplyHashMaps(
+                                    f2.getNumerator(),
+                                    f1.getDenominator()
+                            )
+                    ),
+                    multiplyHashMaps(
+                            f1.getDenominator(),
+                            f2.getDenominator()
+                    )
             );
+        } catch (DivisionByZeroFractionException ex) { return null; }   //will never occur
     }
     
     protected static HashMap<String, Long> multiplyHashMaps(HashMap<String, Long> h1, HashMap<String, Long> h2) {
@@ -392,23 +406,25 @@ public class Fraction {
     }
     
     public static Fraction multiply(Fraction f1, Fraction f2) {
-        return new Fraction(
-                multiplyHashMaps(
-                        f1.numerator,
-                        f2.numerator
-                ),
-                multiplyHashMaps(
-                        f1.denominator,
-                        f2.denominator
-                )
+        try {
+            return new Fraction(
+                    multiplyHashMaps(
+                            f1.numerator,
+                            f2.numerator
+                    ),
+                    multiplyHashMaps(
+                            f1.denominator,
+                            f2.denominator
+                    )
             );
+        } catch (DivisionByZeroFractionException ex) { return null; }   //will never occur
     }
     
-    public Fraction divide(Fraction f2) {
+    public Fraction divide(Fraction f2) throws DivisionByZeroFractionException {
         return divide(this, f2);
     }
     
-    public static Fraction divide(Fraction f1, Fraction f2) {
+    public static Fraction divide(Fraction f1, Fraction f2) throws DivisionByZeroFractionException {
         return multiply(f1, inverse(f2));
     }
 
