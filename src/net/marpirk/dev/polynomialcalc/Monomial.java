@@ -1,7 +1,9 @@
 package net.marpirk.dev.polynomialcalc;
 
 import net.marpirk.dev.polynomialcalc.A.Pair;
+import net.marpirk.dev.polynomialcalc.exceptions.DivisionByZeroFractionException;
 import net.marpirk.dev.polynomialcalc.exceptions.MonomialPowerMismatchException;
+import net.marpirk.dev.polynomialcalc.exceptions.CannotPerformOperationFractionException;
 import net.marpirk.dev.polynomialcalc.i18n.i18n;
 
 /**
@@ -14,16 +16,25 @@ public class Monomial {
     public int power;
     
     public Monomial() {
-        super();
+        this(1);
+    }
+    
+    public Monomial(int power) {
+        this.power = power;
+        this.coefficient = new Fraction();
+    }
+    
+    public Monomial(int power, Fraction coefficient) {
+        this.power = power;
+        this.coefficient = coefficient;
     }
     
     public Monomial(Monomial j) {
-        super(j);
-        this.power = j.power;
+        power = j.power;
+        coefficient = new Fraction(j.coefficient);
     }
     
     public Monomial(String toParse, int power) {
-        super();
         this.power = power;
         
         for ( char c : toParse.toCharArray() ) {
@@ -31,33 +42,21 @@ public class Monomial {
         }
     }
     
+    protected String xtoString(boolean spaces) {
+        return ( power == 0 ? "" : ( spaces ? " " : "" ) + "x" + ( power > 1 ? "^" + power : "" ) );
+    }
+    
     @Override
     public String toString() {
-        return toString(true);
+        return coefficient.toString() + xtoString(true);
     }
     
-    public String toString(boolean spacesOperators) {
-        return toString(spacesOperators, false);
+    public String toString(int decimalPlaces, boolean spaces) throws CannotPerformOperationFractionException {
+        return coefficient.toString(decimalPlaces) + xtoString(spaces);
     }
     
-    public String toString(boolean spacesOperators, boolean exact) {
-        if ( size() == 0 ) return "";
-        String tmpS = "";
-        String frac;
-        for ( String s : keySet() ) {
-            frac = get(s).toString(exact);
-            if ( spacesOperators ) {
-                frac = ( frac.startsWith("-") ? "- " + frac.substring(1) : "+ " + frac );
-            } else {
-                if ( !frac.startsWith("-") ) frac = "+" + frac;
-            }
-            tmpS += " " + frac;
-        }
-        tmpS = tmpS.substring(1);
-        if ( tmpS.startsWith("+") ) {
-            tmpS = spacesOperators ? tmpS.substring(2) : tmpS.substring(1);
-        }
-        return tmpS;
+    public String toString(boolean exact, boolean operator, boolean one, boolean spaces, char divisionChar) {
+        return coefficient.toString(exact, operator, one, spaces, divisionChar) + xtoString(spaces);
     }
     
     public Monomial add(Monomial m2) throws MonomialPowerMismatchException {
@@ -66,15 +65,7 @@ public class Monomial {
     
     public static Monomial add(Monomial m1, Monomial m2) throws MonomialPowerMismatchException {
         if ( m1.power != m2.power ) throw new MonomialPowerMismatchException(i18n.base.getString("OPERATION_ADD"), i18n.ex.getString("MONOMIAL_POWER_REASON_ADD"), m1.power, m2.power);
-        Monomial mr = new Monomial(m1); //monomial result
-        m2.keySet().stream().forEach((i) -> {
-            if ( mr.containsKey(i) ) {
-                mr.replace(i, mr.get(i).add(m2.get(i)));
-            } else {
-                mr.put(i, m2.get(i));
-            }
-        });
-        return mr;
+        return new Monomial(m1.power, m1.coefficient.add(m2.coefficient));
     }
     
     public Monomial multiply(Monomial m2) {
@@ -83,19 +74,16 @@ public class Monomial {
     
     //not yet implemendet
     public static Monomial multiply(Monomial m1, Monomial m2) {
-        Monomial mr = new Monomial();   //polynomial result
-        m1.keySet().stream().forEach((s1) -> {
-            m2.keySet().stream().forEach((s2) -> {
-                String key = A.sortStringChars(s1 + s2);
-                if ( mr.containsKey(key) ) {
-                    mr.replace(key, mr.get(key).add(m1.get(s1).multiply(m2.get(s2))));
-                } else {
-                    mr.put(key, m1.get(s1).multiply(m2.get(s2)));
-                }
-            });
-        });
-        mr.power = m1.power + m2.power;
-        return mr;
+        return new Monomial(m1.power + m2.power, m1.coefficient.multiply(m2.coefficient));
+    }
+    
+    public Monomial divide(Monomial m2) throws MonomialPowerMismatchException, DivisionByZeroFractionException {
+        return divide(this, m2);
+    }
+    
+    public static Monomial divide(Monomial m1, Monomial m2) throws MonomialPowerMismatchException, DivisionByZeroFractionException {
+        if ( m1.power < m2.power) throw new MonomialPowerMismatchException(i18n.base.getString("OPERATION_DIVIDE"), i18n.ex.getString("MONOMIAL_POWER_REASON_DIVIDE"), m1.power, m2.power);
+        return new Monomial(m1.power - m2.power, m1.coefficient.divide(m2.coefficient));
     }
     
     public Pair<Monomial, Monomial> rdivide(Monomial m2) throws MonomialPowerMismatchException {
@@ -105,14 +93,7 @@ public class Monomial {
     //dividing with rest
     public static Pair<Monomial, Monomial> rdivide(Monomial m1, Monomial m2) throws MonomialPowerMismatchException {
         if ( m1.power < m2.power) throw new MonomialPowerMismatchException(i18n.base.getString("OPERATION_DIVIDE"), i18n.ex.getString("MONOMIAL_POWER_REASON_DIVIDE"), m1.power, m2.power);
-        //for now division only for monomials without letters
-        if ( m1.size() == 1 && m1.containsKey("") && m2.size() == 1 && m2.containsKey("") ) {
-            Pair<Monomial, Monomial> mr = new Pair(new Monomial(m1), new Monomial());
-            mr.key.put("", m1.get("").divide(m2.get("")));
-            mr.
-        } else {
-            throw new UnsupportedOperationException(i18n.ex.getString("DIVISION_UNSUPPORTED_LETTER_DIVISION"));
-        }
+        
     }
 
 }

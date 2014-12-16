@@ -2,10 +2,11 @@ package net.marpirk.dev.polynomialcalc;
 
 import java.util.HashMap;
 import java.util.Set;
+import java.util.function.Consumer;
 
+import net.marpirk.dev.polynomialcalc.A.Pair;
 import net.marpirk.dev.polynomialcalc.exceptions.DivisionByZeroFractionException;
-import net.marpirk.dev.polynomialcalc.exceptions.NotNumberFractionException;
-import net.marpirk.dev.polynomialcalc.i18n.i18n;
+import net.marpirk.dev.polynomialcalc.exceptions.CannotPerformOperationFractionException;
 
 /**
  * Fraction class.
@@ -75,11 +76,19 @@ public class Fraction {
     }
     
     //setting and checking methods
+    /**
+     * Creates number Fraction from given rational values.
+     * @param numerator Fraction numerator
+     * @param denominator Fraction denominator
+     * @return checked and reduced Fraction
+     * @throws DivisionByZeroFractionException thrown when denominator = 0
+     * @see check()
+     */
     public final Fraction set(double numerator, double denominator) throws DivisionByZeroFractionException {
         if ( denominator == 0 ) throw new DivisionByZeroFractionException(numerator + "");
         
         //extend to remove comma in num/den
-        int decPlaces = checkDecPlaces(numerator, denominator);
+        int decPlaces = A.compareDecPlaces(numerator, denominator);
         
         HashMap<String, Long> num = new HashMap<>();
         num.put("", Math.round(numerator * Math.pow(10, decPlaces)));       //round is pretty much unneeded, but Java needs it
@@ -91,8 +100,7 @@ public class Fraction {
     }
     
     /**
-     * Sets value of Fraction basing on given rational numerator
-     * and denominator.
+     * Sets value of Fraction basing on preparsed values.
      * @param numerator Fraction numerator
      * @param denominator Fraction denominator
      * @return checked and reduced Fraction
@@ -106,25 +114,25 @@ public class Fraction {
     }
     
     /**
-     * Reduces Fraction and checks signs (just for esthetic).
+     * Removes unneeded elements, reduces Fraction and checks signs (just for esthetic).
      * @return reduced Fraction
+     * @throws DivisionByZeroFractionException thrown when denominator = 0
      */
     public final Fraction check() throws DivisionByZeroFractionException {
         //removes unneeded (zero) elements
-        Set<String> keySet = numerator.keySet();
-        keySet.parallelStream().filter((s) -> ( numerator.get(s) == 0 )).forEach((s) -> {
-            numerator.remove(s);
-        });
-        
-        keySet = denominator.keySet();
-        keySet.parallelStream().filter((s) -> ( denominator.get(s) == 0 )).forEach((s) -> {
-            denominator.remove(s);
-        });
+        Consumer<HashMap<String, Long>> removeUnneeded = hm -> {
+            Set<String> keySet = hm.keySet();
+            keySet.parallelStream().filter((s) -> ( hm.get(s) == 0 )).forEach((s) -> {
+                numerator.remove(s);
+            });
+        };
+        removeUnneeded.accept(numerator);
+        removeUnneeded.accept(denominator);
         
         if ( numerator.isEmpty() ) {
-            denominator.clear();        //just to save memory
+            denominator.clear();        //just to remove junk
             denominator.put("", 1L);
-        } else if ( denominator.isEmpty() ) throw new DivisionByZeroFractionException(partToString(numerator, false, false, true), partToString(denominator, false, false, true));
+        } else if ( denominator.isEmpty() ) throw new DivisionByZeroFractionException(partToString(numerator, false, false, true));
         
         //check if changing sign is necessary
         boolean changeSign = false;
@@ -137,13 +145,7 @@ public class Fraction {
         }
         
         //check greatest common divisor to reduce
-        long gcd = (Long) numerator.values().toArray()[0];
-        for (Long l : numerator.values()) {
-            gcd = A.gcd(gcd, l);
-        }
-        for (Long l : denominator.values()) {
-            gcd = A.gcd(gcd, l);
-        }
+        long gcd = A.gcd(A.getIterableGCD(numerator.values()), A.getIterableGCD(denominator.values()));
         if ( gcd > 1 ) {
             for ( String s : numerator.keySet() ) {
                 numerator.replace(s, ( changeSign ? -1 : 1 ) * numerator.get(s) / gcd);
@@ -154,53 +156,44 @@ public class Fraction {
         }
         return this;
     }
-    
+
     /**
-     * Returns biggest count of decimal places between given numerator
-     * and denominator.
-     * @param numerator Fraction numerator
-     * @param denominator Fraction denominator
-     * @return biggest decimal places count
+     * Checks if Fraction has only number elements.
+     * @return
      */
-    protected final int checkDecPlaces(double numerator, double denominator) {
-        int cDecPlaces, dDecPlaces;
-        if ( numerator != (int) numerator ) {
-            String text = Double.toString(Math.abs(numerator));
-            cDecPlaces = text.length() - text.indexOf('.') - 1;
-        } else {
-            cDecPlaces = 0;
-        }
-        if ( denominator != (int) denominator ) {
-            String text = Double.toString(Math.abs(denominator));
-            dDecPlaces = text.length() - text.indexOf('.') - 1;
-        } else {
-            dDecPlaces = 0;
-        }
-        if ( cDecPlaces >= dDecPlaces ) {
-            return cDecPlaces;
-        } else {
-            return dDecPlaces;
-        }
-    }
-    
     public final boolean isNumberFraction() {
         return numerator.size() == 1 && numerator.containsKey("") && denominator.size() == 1 && denominator.containsKey("");
+    }
+    
+    /**
+     * Checks if Fraction is actually whole number
+     * @param numberFraction does it have to check if fraction is number ({@link isNumberFraction()})
+     * @return
+     */
+    public final boolean isWholeNumber(boolean numberFraction) {
+        if ( numberFraction ) {
+            return isNumberFraction() && denominator.get("") == 1;
+        } else {
+            int wholeCount = 0;
+            wholeCount = denominator.keySet().parallelStream().filter((s) -> ( denominator.get(s) == 1 )).map((_item) -> 1).reduce(wholeCount, Integer::sum);
+            return wholeCount == denominator.size();
+        }
     }
     
     //getting values    
     /**
      * Returns Fraction numerator.
-     * @return numerator
+     * @return 
      */
     public HashMap<String, Long> getNumerator() {
         return numerator;
     }
     
     /**
-     * Sets Fraction numerator and checks it.
+     * Sets Fraction numerator and checks Fraction.
      * @param numerator Fraction numerator
      * @return checked and reduced Fraction
-     * @see set(double numerator, double denumerator)
+     * @see set(double numerator, double denominator) Fraction.set(double, double)
      */
     public Fraction setNumerator(HashMap<String, Long> numerator) {
         try { return set(numerator, this.denominator);
@@ -209,17 +202,18 @@ public class Fraction {
     
     /**
      * Returns Fraction denominator.
-     * @return denominator
+     * @return 
      */
     public HashMap<String, Long> getDenominator() {
         return denominator;
     }
     
     /**
-     * Sets Fraction denominator and checks it.
+     * Sets Fraction denominator and checks Fraction.
      * @param denominator Fraction denominator
      * @return checked and reduced Fraction
-     * @see set(double numerator, double denumerator)
+     * @throws DivisionByZeroFractionException thrown when denominator = 0
+     * @see set(double numerator, double denumerator) Fraction.set(double, double)
      */
     public Fraction setDenominator(HashMap<String, Long> denominator) throws DivisionByZeroFractionException {
         return set(this.numerator, denominator);
@@ -227,11 +221,11 @@ public class Fraction {
     
     /**
      * Returns exact value of Fraction division.
-     * @return exact value of Fraction
-     * @throws NotNumberFractionException thrown if Fraction isn't number Fraction
+     * @return 
+     * @throws CannotPerformOperationFractionException thrown if Fraction isn't number Fraction
      */
-    public double getValue() throws NotNumberFractionException {
-        if ( !isNumberFraction() ) throw new NotNumberFractionException(i18n.ex.getString("NOT_NUMBER_FRACTION_GETVALUE"), this);
+    public double getValue() throws CannotPerformOperationFractionException {
+        if ( !isNumberFraction() ) throw new CannotPerformOperationFractionException("CPOF_NOT_NUMBER_FRACTION", this);
         return numerator.get("")/denominator.get("");
     }
     
@@ -239,27 +233,48 @@ public class Fraction {
      * Returns exact value of Fraction division rounded to given decimal places count.
      * @param decimalPlaces count of decimal places to round to
      * @return exact value of Fraction
-     * @throws NotNumberFractionException thrown if Fraction isn't number Fraction
+     * @throws CannotPerformOperationFractionException thrown if Fraction isn't number Fraction
      */
-    public double getValue(int decimalPlaces) throws NotNumberFractionException {
-        if ( !isNumberFraction() ) throw new NotNumberFractionException(i18n.ex.getString("NOT_NUMBER_FRACTION_GETVALUE"), this);
+    public double getValue(int decimalPlaces) throws CannotPerformOperationFractionException {
+        if ( !isNumberFraction() ) throw new CannotPerformOperationFractionException("CPOF_NOT_NUMBER_FRACTION_OP", this);
         return Math.round((numerator.get("") * (Math.pow(10, decimalPlaces)))
                     /
                     (denominator.get("") * (Math.pow(10, decimalPlaces))))
                 / Math.pow(10, decimalPlaces);
     }
     
-    //toString    
+    //toString
+    /**
+     * Returns a string representation of Fraction with defaults:
+     * <ul>
+     * <li>not exact</li>
+     * <li>with leading operators</li>
+     * <li>without unneeded ones</li>
+     * <li>with spaces</li>
+     * <li>with '/' division char</li>
+     * </ul>
+     * @return 
+     * @see toString(boolean, boolean, boolean, boolean, char)
+     */
     @Override
     public String toString() {
         return toString(false, true, false, true, '/');
     }
     
+    /**
+     * Returns string representation of Fraction.
+     * @param exact exact value or fraction
+     * @param operator show leading operator (+)
+     * @param one show every one - even ehn not needed (for example 1a or a)
+     * @param spaces divide string elements with spaces
+     * @param divisionChar char between numerator and doneminator
+     * @return 
+     */
     public String toString(boolean exact, boolean operator, boolean one, boolean spaces, char divisionChar) {
         String op = ( spaces ? ' ' + divisionChar + ' ' : divisionChar ) + "";
         if ( isNumberFraction() ) {
             if ( exact ) {
-                try { return getValue() + ""; } catch (NotNumberFractionException ex) { return null; } //will never occur - on the beginning is isNumberFraction check
+                try { return getValue() + ""; } catch (CannotPerformOperationFractionException ex) { return null; } //will never occur - on the beginning is isNumberFraction check
             } else {
                 long num = numerator.get("");
                 if ( num == 0 ) return "0";
@@ -307,13 +322,22 @@ public class Fraction {
     /**
      * Returns exact value of number fraction with spectified number of decimal places.
      * @param decimalPlaces number of decimal places to round to
-     * @return exact value of number fraction
-     * @throws NotNumberFractionException thrown if faction is not number fraction
+     * @return 
+     * @throws CannotPerformOperationFractionException thrown when Fraction is not number Fraction
+     * @see getValue(int)
      */
-    public String toString(int decimalPlaces) throws NotNumberFractionException {
+    public String toString(int decimalPlaces) throws CannotPerformOperationFractionException {
         return getValue(decimalPlaces) + "";
     }
     
+    /**
+     * Transforms part of fraction (numerator or denominator).
+     * @param m HashMap with values
+     * @param operator show leading operator (+)
+     * @param one show every one - even ehn not needed (for example 1a or a)
+     * @param spaces divide string elements with spaces
+     * @return 
+     */
     protected static String partToString(HashMap<String, Long> m, boolean operator, boolean one, boolean spaces) {
         String r = "";
         Long num;
@@ -331,15 +355,31 @@ public class Fraction {
     
     //operations on Fractions
     //inverse
+    /**
+     * Inverses Fraction.
+     * @throws DivisionByZeroFractionException thrown when numerator = 0
+     */
     public void inverse() throws DivisionByZeroFractionException {
         set(denominator, numerator);
     }
     
+    /**
+     * Inverses given Fraction.
+     * @param f Fraction to invert
+     * @return
+     * @throws DivisionByZeroFractionException thrown when numerator = 0
+     */
     public static Fraction inverse(Fraction f) throws DivisionByZeroFractionException {
         return new Fraction(f.getDenominator(), f.getNumerator());
     }
     
     //add
+    /**
+     * Adds two hash maps.
+     * @param h1 first HashMap
+     * @param h2 second HashMap
+     * @return 
+     */
     protected static HashMap<String, Long> addHashMaps(HashMap<String, Long> h1, HashMap<String, Long> h2){
         HashMap<String, Long> hr = new HashMap<>(h1);
         h2.keySet().parallelStream().forEach((k) -> {
@@ -352,10 +392,21 @@ public class Fraction {
         return hr;
     }
     
+    /**
+     * Adds to this Fraction.
+     * @param f2 Fraction to add
+     * @return new Fraction = this + f2
+     */
     public Fraction add(Fraction f2) {
         return add(this, f2);
     }
     
+    /**
+     * Adds Fractions.
+     * @param f1 first Fraction
+     * @param f2 second Fraction
+     * @return new Fraction = f1 + f2
+     */
     public static Fraction add(Fraction f1, Fraction f2) {
         try {
             return new Fraction(
@@ -378,6 +429,12 @@ public class Fraction {
     }
     
     //multiply
+    /**
+     * Multiplies two hash maps.
+     * @param h1 first HashMap
+     * @param h2 second HashMap
+     * @return 
+     */
     protected static HashMap<String, Long> multiplyHashMaps(HashMap<String, Long> h1, HashMap<String, Long> h2) {
         HashMap<String, Long> hr = new HashMap<>();
         String sr;
@@ -394,10 +451,21 @@ public class Fraction {
         return hr;
     }
     
+    /**
+     * Multiplies this Fraction.
+     * @param f2 Fraction to multiply with
+     * @return new Fraction = this * f2
+     */
     public Fraction multiply(Fraction f2) {
         return multiply(this, f2);
     }
     
+    /**
+     * Multiplies Fractions.
+     * @param f1 first Fraction
+     * @param f2 second Fraction
+     * @return new Fraction = f1 * f2
+     */
     public static Fraction multiply(Fraction f1, Fraction f2) {
         try {
             return new Fraction(
@@ -414,19 +482,57 @@ public class Fraction {
     }
     
     //divide
+    /**
+     * Divides this Fraction without rest.
+     * @param f2 Fraction to divide with
+     * @return new Fraction = this / f2
+     * @throws DivisionByZeroFractionException thrown when nominator of given Fraction = 0
+     */
     public Fraction divide(Fraction f2) throws DivisionByZeroFractionException {
         return divide(this, f2);
     }
     
+    /**
+     * Divides Fractions without rest.
+     * @param f1 first Fraction
+     * @param f2 second Fraction
+     * @return new Fraction = f1 / f2
+     * @throws DivisionByZeroFractionException thrown when nominator of second Fraction = 0
+     */
     public static Fraction divide(Fraction f1, Fraction f2) throws DivisionByZeroFractionException {
         return multiply(f1, inverse(f2));
+    }
+    
+    //divide with rest
+    /**
+     * Divides this Fraction with rest.
+     * @param f2 Fraction to divide with
+     * @return Pair of result and rest
+     * @throws CannotPerformOperationFractionException thrown when Fraction is not whole number
+     */
+    public Pair<Long, Long> rdivide(Fraction f2) throws CannotPerformOperationFractionException {
+        return rdivide(this, f2);
+    }
+    
+    /**
+     * Divides Fractions with rest.
+     * @param f1 first Fraction
+     * @param f2 second Fraction
+     * @return Pair of result and rest
+     * @throws CannotPerformOperationFractionException thrown when Fraction is not whole number
+     */
+    public Pair<Long, Long> rdivide(Fraction f1, Fraction f2) throws CannotPerformOperationFractionException {
+        if ( !f1.isWholeNumber(false) ) throw new CannotPerformOperationFractionException("CPOF_RDIVIDE", f1);
+        if ( !f2.isWholeNumber(false) ) throw new CannotPerformOperationFractionException("CPOF_RDIVIDE", f2);
+        long gcd = A.gcd(A.getIterableGCD(numerator.values()), A.getIterableGCD(denominator.values()));
+        throw new UnsupportedOperationException();
     }
     
     
     //other
     /**
      * Checks if given Fraction kind of HashMap ({@literal <}String, Long{@literal >}) is zero.
-     * @param h 
+     * @param h HashMap to check
      * @return 
      */
     protected static boolean isHashMapZero(HashMap<String, Long> h) {
