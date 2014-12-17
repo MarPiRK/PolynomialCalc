@@ -41,7 +41,7 @@ public class Polynomial extends HashMapDelegation<Integer, Monomial> {
     public final void check() {
         checkHighest();
         for ( int i = highest; i >= 0; i-- ) {
-            if ( containsKey(i) && get(i).isEmpty() ) {
+            if ( containsKey(i) && get(i).coefficient.isZero() ) {
                 remove(i);
             }
         }
@@ -86,7 +86,7 @@ public class Polynomial extends HashMapDelegation<Integer, Monomial> {
         String tmpS = "";
         for ( int i = highest; i >= 0; i--) {
             if ( containsKey(i) ) {
-                tmpS += get(i).toString(true) + " ";
+                tmpS += get(i).toString(false, false, false, true, '/') + " ";
             }
         }
         if ( tmpS.startsWith("+") ) tmpS = tmpS.substring(2);
@@ -97,6 +97,7 @@ public class Polynomial extends HashMapDelegation<Integer, Monomial> {
         return add(this, p2);
     }
     
+    //TO CHECK!!!
     public static Polynomial add(Polynomial p1, Polynomial p2) {
         Polynomial pr = new Polynomial(p1.getHashMap()); //polynomial result
         p2.keySet().stream().forEach((i) -> {
@@ -143,7 +144,7 @@ public class Polynomial extends HashMapDelegation<Integer, Monomial> {
     
     //not yet implemendet
     public static Pair<Polynomial, Polynomial> divide(Polynomial p1, Polynomial p2) {
-        
+        throw new UnsupportedOperationException();
     }
 
 }

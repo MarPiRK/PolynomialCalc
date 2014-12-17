@@ -4,6 +4,7 @@ import net.marpirk.dev.polynomialcalc.A.Pair;
 import net.marpirk.dev.polynomialcalc.exceptions.DivisionByZeroFractionException;
 import net.marpirk.dev.polynomialcalc.exceptions.MonomialPowerMismatchException;
 import net.marpirk.dev.polynomialcalc.exceptions.CannotPerformOperationFractionException;
+import net.marpirk.dev.polynomialcalc.exceptions.ParamParseException;
 import net.marpirk.dev.polynomialcalc.i18n.i18n;
 
 /**
@@ -34,12 +35,9 @@ public class Monomial {
         coefficient = new Fraction(j.coefficient);
     }
     
-    public Monomial(String toParse, int power) {
+    public Monomial(String toParse, int power) throws ParamParseException {
         this.power = power;
-        
-        for ( char c : toParse.toCharArray() ) {
-            throw new UnsupportedOperationException();
-        }
+        this.coefficient = new Fraction(toParse);
     }
     
     protected String xtoString(boolean spaces) {
@@ -93,7 +91,7 @@ public class Monomial {
     //dividing with rest
     public static Pair<Monomial, Monomial> rdivide(Monomial m1, Monomial m2) throws MonomialPowerMismatchException {
         if ( m1.power < m2.power) throw new MonomialPowerMismatchException(i18n.base.getString("OPERATION_DIVIDE"), i18n.ex.getString("MONOMIAL_POWER_REASON_DIVIDE"), m1.power, m2.power);
-        
+        throw new UnsupportedOperationException();
     }
 
 }

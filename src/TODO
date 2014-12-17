@@ -6,4 +6,5 @@ TODO list:
 + rest from dividing depending on operation (rdivide/divide)
 + finish rdivide in Fraction
 + documentation
-+ check Fraction
+~ check Fraction
+~ check Polynomial operations

@@ -2,11 +2,15 @@ package net.marpirk.dev.polynomialcalc;
 
 import java.util.HashMap;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import net.marpirk.dev.polynomialcalc.A.Pair;
 import net.marpirk.dev.polynomialcalc.exceptions.DivisionByZeroFractionException;
 import net.marpirk.dev.polynomialcalc.exceptions.CannotPerformOperationFractionException;
+import net.marpirk.dev.polynomialcalc.exceptions.ParamParseException;
+import net.marpirk.dev.polynomialcalc.i18n.i18n;
 
 /**
  * Fraction class.
@@ -73,6 +77,63 @@ public class Fraction {
      */
     public Fraction(HashMap<String, Long> numerator, HashMap<String, Long> denominator) throws DivisionByZeroFractionException {
         set(numerator, denominator);
+    }
+    
+    /**
+     * Creates Fraction from given string.
+     * @param toParse parse text
+     * @throws ParamParseException thrown when in param was found wrong character
+     */
+    public Fraction(String toParse) throws ParamParseException {
+        Function<Boolean, HashMap<String, Long>> getPart = nd -> {
+            if ( nd ) {
+                return numerator;
+            } else {
+                return denominator;
+            }
+        };
+        
+        class Element {
+            public boolean op = true;   //operator: + is true; - is false; default +
+            public String number = "";
+            public String key = "";
+        }
+        
+        Element e = new Element();
+        boolean nd = true;  //numerator is true; denominator is false
+        
+        BiFunction<Element, Boolean, Element> add = (a, nominatordenominator) -> {
+            HashMap<String, Long> cPart = getPart.apply(nominatordenominator);
+            if ( cPart.containsKey(a.key) ) {
+                cPart.replace(a.key, cPart.get(a.key) + Long.parseLong(( a.op ? '+' : '-' ) + a.number));
+                } else {
+                cPart.put(a.key, Long.parseLong(( a.op ? '+' : '-' ) + a.number));
+            }
+            return new Element();
+        };
+        
+        for ( char c : toParse.toCharArray() ) {
+            if ( c == '+' || c == '-' ) {
+                if ( !getPart.apply(nd).isEmpty() ) {
+                    e = add.apply(e, nd);
+                }
+                e.op = ( c == '+' );
+            } else if ( A.isInteger(c + "") ) {
+                e.number += c;
+            } else if ( Character.isAlphabetic(c) ) {
+                e.key += c;
+            } else if ( c == '/' ) {
+                if ( getPart.apply(nd).isEmpty() ) {
+                    throw new ParamParseException(toParse, c + "" , i18n.ex.getString("PARAM_PARSE_NUM_NOT_FOUND"));
+                } else {
+                    e = add.apply(e, nd);
+                }
+                nd = !nd;
+            } else if ( c == ' ' ) {    //ommit spaces
+            } else {
+                throw new ParamParseException(toParse, c + "", i18n.ex.getString("PARAM_PARSE_WRONG_CHARACTER"));
+            }
+        }
     }
     
     //setting and checking methods
@@ -178,6 +239,11 @@ public class Fraction {
             wholeCount = denominator.keySet().parallelStream().filter((s) -> ( denominator.get(s) == 1 )).map((_item) -> 1).reduce(wholeCount, Integer::sum);
             return wholeCount == denominator.size();
         }
+    }
+    
+    public final boolean isZero() {
+        return (numerator.isEmpty()   || numerator.get("") == 0)
+            && (denominator.isEmpty() || denominator.get("") == 0);
     }
     
     //getting values    
