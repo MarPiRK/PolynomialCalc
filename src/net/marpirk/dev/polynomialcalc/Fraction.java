@@ -1,7 +1,6 @@
 package net.marpirk.dev.polynomialcalc;
 
 import java.util.HashMap;
-import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -20,9 +19,9 @@ import net.marpirk.dev.polynomialcalc.i18n.i18n;
 public class Fraction {
     
     /** Numerator in Fraction. */
-    protected HashMap<String, Long> numerator;
+    protected HashMap<String, Long> numerator = new HashMap<>();
     /** Denominator in Fraction. */
-    protected HashMap<String, Long> denominator;
+    protected HashMap<String, Long> denominator = new HashMap<>();
     
     /** Creates number Fraction = 1/1. */
     public Fraction() {
@@ -83,14 +82,15 @@ public class Fraction {
      * Creates Fraction from given string.
      * @param toParse parse text
      * @throws ParamParseException thrown when in param was found wrong character
+     * @throws DivisionByZeroFractionException thrown when denominator = 0
      */
-    public Fraction(String toParse) throws ParamParseException {
+    public Fraction(String toParse) throws ParamParseException, DivisionByZeroFractionException {
+        HashMap<String, Long> num = new HashMap<>();
+        HashMap<String, Long> den = new HashMap<>();
+        
         Function<Boolean, HashMap<String, Long>> getPart = nd -> {
-            if ( nd ) {
-                return numerator;
-            } else {
-                return denominator;
-            }
+            if ( nd ) return num;
+                else  return den;
         };
         
         class Element {
@@ -134,6 +134,9 @@ public class Fraction {
                 throw new ParamParseException(toParse, c + "", i18n.ex.getString("PARAM_PARSE_WRONG_CHARACTER"));
             }
         }
+        add.apply(e, nd);
+        if ( den.isEmpty() ) den.put("", 1L);
+        set(num, den);
     }
     
     //setting and checking methods
@@ -182,10 +185,12 @@ public class Fraction {
     public final Fraction check() throws DivisionByZeroFractionException {
         //removes unneeded (zero) elements
         Consumer<HashMap<String, Long>> removeUnneeded = hm -> {
-            Set<String> keySet = hm.keySet();
-            keySet.parallelStream().filter((s) -> ( hm.get(s) == 0 )).forEach((s) -> {
-                numerator.remove(s);
-            });
+            String[] keySet = (String[]) hm.keySet().toArray(new String[hm.keySet().size()]);
+            for ( String s : keySet ) {
+                if ( hm.get(s) == 0 ) {
+                    numerator.remove(s);
+                }
+            }
         };
         removeUnneeded.accept(numerator);
         removeUnneeded.accept(denominator);
@@ -241,9 +246,26 @@ public class Fraction {
         }
     }
     
+    /**
+     * Throws CannotPerformOperationException if Fraction is not whole number with given i18n prefix.
+     * @param f Fraction to check
+     * @param i18nprefix prefix to i18n key name for message
+     * @throws CannotPerformOperationFractionException 
+     */
+    protected final void throwNotWholeNumber(Fraction f, String i18nprefix) throws CannotPerformOperationFractionException {
+        if ( !f.isWholeNumber(false) ) throw new CannotPerformOperationFractionException(i18nprefix, f);
+    }
+    
+    /**
+     * 
+     * @return 
+     */
+    public final HashMap<String, Long> extractWhole() {
+        throw new UnsupportedOperationException();
+    }
+    
     public final boolean isZero() {
-        return (numerator.isEmpty()   || numerator.get("") == 0)
-            && (denominator.isEmpty() || denominator.get("") == 0);
+        return (numerator.isEmpty()   || numerator.get("") == 0);
     }
     
     //getting values    
@@ -331,13 +353,13 @@ public class Fraction {
      * Returns string representation of Fraction.
      * @param exact exact value or fraction
      * @param operator show leading operator (+)
-     * @param one show every one - even ehn not needed (for example 1a or a)
+     * @param one show every one - even when not needed (for example 1a or a)
      * @param spaces divide string elements with spaces
      * @param divisionChar char between numerator and doneminator
      * @return 
      */
     public String toString(boolean exact, boolean operator, boolean one, boolean spaces, char divisionChar) {
-        String op = ( spaces ? ' ' + divisionChar + ' ' : divisionChar ) + "";
+        String op = ( spaces ? " " + divisionChar + " " : divisionChar ) + "";
         if ( isNumberFraction() ) {
             if ( exact ) {
                 try { return getValue() + ""; } catch (CannotPerformOperationFractionException ex) { return null; } //will never occur - on the beginning is isNumberFraction check
@@ -359,9 +381,12 @@ public class Fraction {
                     if ( numS.length() > 0 ) numS += " ";
                     if ( denS.length() > 0 ) denS += " ";
                 }
-                if ( one ) {
-                    if ( (num != 1 && num != -1) || (num == 1 && num == -1 && den != 1) ) numS += num;   //if denominator is not 1 and numerator is +-1 then fraction would be like this: -1/123 or 1/23 - not -/123 or /23
-                    if ( den != 1 ) denS += den;
+                if ( !one ) {
+                    if ( (num != 1 && num != -1) || (num == 1 && num == -1 && den != 1) ) numS += Math.abs(num);   //if denominator is not 1 and numerator is +-1 then fraction would be like this: -1/123 or 1/23 - not -/123 or /23
+                    if ( den != 1 ) denS += Math.abs(den);
+                } else {
+                    numS += Math.abs(num);
+                    denS += Math.abs(den);
                 }
                 return numS + ( den != 1 ? op + denS : "" );
             }
@@ -575,8 +600,9 @@ public class Fraction {
      * @param f2 Fraction to divide with
      * @return Pair of result and rest
      * @throws CannotPerformOperationFractionException thrown when Fraction is not whole number
+     * @throws DivisionByZeroFractionException thrown when given Fraction = 0
      */
-    public Pair<Long, Long> rdivide(Fraction f2) throws CannotPerformOperationFractionException {
+    public Pair<HashMap<String, Long>, HashMap<String, Long>> rdivide(Fraction f2) throws CannotPerformOperationFractionException, DivisionByZeroFractionException {
         return rdivide(this, f2);
     }
     
@@ -586,12 +612,26 @@ public class Fraction {
      * @param f2 second Fraction
      * @return Pair of result and rest
      * @throws CannotPerformOperationFractionException thrown when Fraction is not whole number
+     * @throws DivisionByZeroFractionException thrown when f2 = 0
      */
-    public Pair<Long, Long> rdivide(Fraction f1, Fraction f2) throws CannotPerformOperationFractionException {
-        if ( !f1.isWholeNumber(false) ) throw new CannotPerformOperationFractionException("CPOF_RDIVIDE", f1);
-        if ( !f2.isWholeNumber(false) ) throw new CannotPerformOperationFractionException("CPOF_RDIVIDE", f2);
-        long gcd = A.gcd(A.getIterableGCD(numerator.values()), A.getIterableGCD(denominator.values()));
-        throw new UnsupportedOperationException();
+    public Pair<HashMap<String, Long>, HashMap<String, Long>> rdivide(Fraction f1, Fraction f2) throws CannotPerformOperationFractionException, DivisionByZeroFractionException {
+        throwNotWholeNumber(f1, "CPOF_RDIVIDE");
+        throwNotWholeNumber(f2, "CPOF_RDIVIDE");
+        Fraction f = divide(f1, f2);
+        long multiplier = f.getDenominator().get(f.getDenominator().keySet().iterator().next());
+        
+        HashMap<String, Long> whole = f.extractWhole();
+        
+        HashMap<String, Long> tmpHM = new HashMap<>();
+        tmpHM.put("", -1L);
+        
+        Fraction rest = f.add(new Fraction(whole, tmpHM));
+        multiplier = multiplier / rest.getDenominator().get(rest.getDenominator().keySet().iterator().next());
+        
+        tmpHM = new HashMap<>();
+        tmpHM.put("", multiplier);
+        
+        return new Pair<>(whole, multiplyHashMaps(f.getNumerator(), tmpHM));
     }
     
     

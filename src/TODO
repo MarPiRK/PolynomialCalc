@@ -1,10 +1,9 @@
 TODO list:
 ~ check new multi argument operation system
-+ parameter parsing mechanism
-+ finish Monomial
-~ rewrite Polynomial to suit new Monomial and Fraction classes
 + rest from dividing depending on operation (rdivide/divide)
 + finish rdivide in Fraction
 + documentation
 ~ check Fraction
+~ debug Fraction toString
 ~ check Polynomial operations
+~ distinctly check Fraction rdivide!!!

@@ -35,7 +35,7 @@ public class Monomial {
         coefficient = new Fraction(j.coefficient);
     }
     
-    public Monomial(String toParse, int power) throws ParamParseException {
+    public Monomial(String toParse, int power) throws ParamParseException, DivisionByZeroFractionException {
         this.power = power;
         this.coefficient = new Fraction(toParse);
     }
@@ -53,6 +53,15 @@ public class Monomial {
         return coefficient.toString(decimalPlaces) + xtoString(spaces);
     }
     
+    /**
+     * Returns string representation of Monomial.
+     * @param exact exact value or fraction
+     * @param operator show leading operator (+)
+     * @param one show every one - even when not needed (for example 1a or a)
+     * @param spaces divide string elements with spaces
+     * @param divisionChar char between numerator and doneminator
+     * @return 
+     */
     public String toString(boolean exact, boolean operator, boolean one, boolean spaces, char divisionChar) {
         return coefficient.toString(exact, operator, one, spaces, divisionChar) + xtoString(spaces);
     }

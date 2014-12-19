@@ -42,7 +42,7 @@ public class A {
      */
     protected final static int getDecPlaces(double d) {
         int dec;
-        if ( d != (int) d ) {
+        if ( d != Math.round(d) ) {
             String text = Double.toString(Math.abs(d));
             dec = text.length() - text.indexOf('.') - 1;
         } else {

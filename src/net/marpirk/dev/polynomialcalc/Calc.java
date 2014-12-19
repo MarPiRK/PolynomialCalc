@@ -5,14 +5,15 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.marpirk.dev.polynomialcalc.A.Pair;
+import net.marpirk.dev.polynomialcalc.exceptions.DivisionByZeroFractionException;
 import net.marpirk.dev.polynomialcalc.exceptions.ParamParseException;
 import net.marpirk.dev.polynomialcalc.i18n.i18n;
 import net.marpirk.dev.polynomialcalc.i18n.i18nt;
 
 public class Calc {
 
-    private static ArrayList<Polynomial> po;    //polynomials
-    private static ArrayList<Operation> op;     //operations
+    private final static ArrayList<Polynomial> po = new ArrayList<>();    //polynomials
+    private final static ArrayList<Operation> op = new ArrayList<>();     //operations
     
     private final static Logger log = Logger.getLogger(Calc.class.getName());
     
@@ -29,23 +30,18 @@ public class Calc {
                         wTmpArr = new ArrayList<>();
                     }
                 } else {
-                    for ( char c : s.toCharArray() ) {
-                        if ( A.isInteger(c + "") || c == '|' || Operation.isOperator(c) || Character.isLetter(c) ) {
-                            throw new ParamParseException(s, c + "", i18n.ex.getString("PARAM_PARSE_WRONG_CHARACTER"));
-                        }
-                    }
                     wTmpArr.add(s);
                 }
             }
             po.add(new Polynomial(wTmpArr));
-        } catch ( ParamParseException ex ) {
+        } catch ( ParamParseException|DivisionByZeroFractionException ex ) {
             log.log(Level.SEVERE, ex.getMessage(), ex);
             System.exit(1);
         }
         
         Pair<Polynomial, Polynomial> tmpRes = new Pair<>(po.get(0), new Polynomial());
         int i;
-        System.out.println(i18n.base.getString("RESULT_INPUT_DATA") + ":\n"
+        System.out.print(i18n.base.getString("RESULT_INPUT_DATA") + ":\n"
                 + "( " + po.get(0).toString() + " ) ");
         for ( i = 1; i < po.size(); i++ ) {
             System.out.print(Operation.getOpChar(op.get(i - 1))
@@ -74,6 +70,8 @@ public class Calc {
                         + i18n.getMessage(i18nt.BASE, "RESULT_REST_2_OPERATION_NR", (i-1)));
             }
         }
+        
+        System.out.print("\n");
         
     }
     

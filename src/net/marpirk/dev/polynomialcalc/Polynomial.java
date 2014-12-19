@@ -6,6 +6,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.marpirk.dev.polynomialcalc.A.Pair;
+import net.marpirk.dev.polynomialcalc.exceptions.DivisionByZeroFractionException;
+import net.marpirk.dev.polynomialcalc.exceptions.HashMapDelegationException;
 import net.marpirk.dev.polynomialcalc.exceptions.MonomialPowerMismatchException;
 import net.marpirk.dev.polynomialcalc.exceptions.ParamParseException;
 import net.marpirk.dev.polynomialcalc.i18n.i18n;
@@ -27,12 +29,12 @@ public class Polynomial extends HashMapDelegation<Integer, Monomial> {
         check();
     }
     
-    public Polynomial(ArrayList<String> j) throws NumberFormatException, ParamParseException {
+    public Polynomial(ArrayList<String> j) throws NumberFormatException, ParamParseException, DivisionByZeroFractionException {
         construct();
         String[] tmpS;
         for ( String s : j ) {
-            tmpS = s.split("|");
-            if ( tmpS.length > 2 ) throw new ParamParseException(s, null, i18n.ex.getString("PARAM_PARSE_SYNTAX_ERROR"));
+            tmpS = s.split("\\|");
+            if ( tmpS.length != 2 ) throw new ParamParseException(s, null, i18n.ex.getString("PARAM_PARSE_SYNTAX_ERROR"));
             put(Integer.parseInt(tmpS[1]), new Monomial(tmpS[0], Integer.parseInt(tmpS[1])));
         }
         check();
@@ -57,6 +59,8 @@ public class Polynomial extends HashMapDelegation<Integer, Monomial> {
     }
     
     @Override
+    public void beforeNodeAccess(Integer key, Monomial value) throws HashMapDelegationException { }
+    @Override
     public void afterNodeAccess(Integer key, Monomial value) {
         if ( key > highest ) {
             highest = key;
@@ -64,10 +68,18 @@ public class Polynomial extends HashMapDelegation<Integer, Monomial> {
     }
     
     @Override
-    public void afterNodeInsertion(Integer key, Monomial value) {
-        afterNodeAccess(key, value);
+    public void beforeNodeInsertion(Integer key, Monomial value) throws HashMapDelegationException {
+        if ( value.coefficient.isZero() ) throw new HashMapDelegationException();
     }
     
+    @Override
+    public void afterNodeInsertion(Integer key, Monomial value) {
+        afterNodeAccess(key, value);
+        if ( value.coefficient.isZero() ) remove(key);
+    }
+    
+    @Override
+    public void beforeNodeRemoval(Integer key, Monomial value) throws HashMapDelegationException { }
     @Override
     public void afterNodeRemoval(Integer key, Monomial value) {
         if ( key.equals(highest) ) {
@@ -76,17 +88,11 @@ public class Polynomial extends HashMapDelegation<Integer, Monomial> {
     }
     
     @Override
-    public boolean isEmpty() {
-        check();
-        return super.isEmpty();
-    }
-    
-    @Override
     public String toString() {
         String tmpS = "";
         for ( int i = highest; i >= 0; i--) {
             if ( containsKey(i) ) {
-                tmpS += get(i).toString(false, false, false, true, '/') + " ";
+                tmpS += get(i).toString(false, i < highest, i == 0, true, '/') + " ";
             }
         }
         if ( tmpS.startsWith("+") ) tmpS = tmpS.substring(2);
@@ -105,8 +111,8 @@ public class Polynomial extends HashMapDelegation<Integer, Monomial> {
                 try {
                     pr.replace(i, pr.get(i).add(p2.get(i)));
                 } catch (MonomialPowerMismatchException ex) {
-                        Logger.getLogger(Polynomial.class.getName()).log(Level.SEVERE, null, ex);   //for future removal - shouldn't never occur
-                        System.exit(1000);
+                    Logger.getLogger(Polynomial.class.getName()).log(Level.SEVERE, null, ex);   //for future removal - shouldn't never occur
+                    System.exit(1000);
                 }
             } else {
                 pr.put(i, p2.get(i));
