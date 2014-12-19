@@ -125,7 +125,7 @@ public class Fraction {
             if ( cPart.containsKey(a.getKey()) ) {
                 cPart.replace(a.getKey(), cPart.get(a.getKey()) + Long.parseLong(( a.getOp() ? '+' : '-' ) + a.getNumber()));
             } else {
-                cPart.put(a.getKey(), Long.parseLong(( a.getOp() ? '+' : '-' ) + a.getNumber()));
+                cPart.put(a.getKey(), Long.parseLong(( a.getOp() ? '+' : '-' ) + ( a.getNumber().length() > 1 ? a.getNumber() : "1" )));
             }
             return new Element();
         };
@@ -281,7 +281,8 @@ public class Fraction {
     }
     
     public final boolean isZero() {
-        return (numerator.isEmpty()   || numerator.get("") == 0);
+        return (numerator.isEmpty() ||
+               (numerator.containsKey("") && numerator.get("") == 0));
     }
     
     //getting values    
@@ -403,23 +404,25 @@ public class Fraction {
                     if ( (num != 1 && num != -1) || (num == 1 && num == -1 && den != 1) ) numS += Math.abs(num);   //if denominator is not 1 and numerator is +-1 then fraction would be like this: -1/123 or 1/23 - not -/123 or /23
                     if ( den != 1 ) denS += Math.abs(den);
                 }
-                return numS + ( den != 1 ? op + denS : "" );
+                return numS + ( den != 1 ? divisionChar + denS : "" );
             }
         } else {
             if ( numerator.isEmpty() ) return "0";
             
-            String numS = partToString(numerator, operator, one, spaces);
+            String numS = partToString(numerator, false, one, spaces);
                 
             //if denominator map is small it's not necessary to check it like numerator
             if ( denominator.isEmpty() || (denominator.size() == 1 && denominator.containsKey("") && denominator.get("") == 1) ) {
                 return numS;
             } else if (denominator.size() == 1 && denominator.containsKey("")) {
-                return '(' + space + numS + space + ')' + op + denominator.get("");
+                return ( operator ? "+" + space : "") + ( numerator.size() != 1 ? "(" : "" ) + space + numS + space + ( numerator.size() != 1 ? ")" : "" ) + op + denominator.get("");
             }
             
-            String denS = partToString(denominator, operator, one, spaces);
+            String denS = partToString(denominator, false, one, spaces);
             
-            return '(' + space + numS + space + ')' + op + '(' + space + denS + space + ')';
+            return  ( operator ? "+" + space : "") + ( numerator.size() != 1 ? "(" : "" ) + space + numS + space + ( numerator.size() != 1 ? ")" : "" ) +
+                    op +
+                    ( denominator.size() != 1 ? "(" : "" ) + space + denS + space + ( numerator.size() != 1 ? ")" : "" );
         }
     }
     
@@ -447,14 +450,14 @@ public class Fraction {
         Long num;
         for ( String s : m.keySet() ) {
             num = m.get(s);
-            if ( operator ) r = ( num >= 0 ? "+" : "-" );
-                else        r = ( num >=0 ? "" : "-" );
+            if ( operator ) r += ( num >= 0 ? "+" : "-" );
+                else        r += ( num >= 0 ? ( r.length() > 0 ? "+" : "" ) : "-" );
             if ( spaces && r.length() > 0 ) r += " ";
-            if ( (one) || (num != 1 && num != -1) ) r += num;
+            if ( one || num != 1 && num != -1) r += Math.abs(num);
             if ( spaces && r.length() > 0 ) r += " ";
-            r += s + ( spaces ? " " : "" );
+            r += s + ( spaces && s.length() > 0 ? " " : "" );
         }
-        return r;
+        return ( r.endsWith(" ") ? r.substring(0, r.length() - 1) : r );
     };
     
     //operations on Fractions

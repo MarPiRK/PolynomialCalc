@@ -96,7 +96,7 @@ public class Polynomial extends HashMapDelegation<Integer, Monomial> {
                 tmpS += get(i).toString(false, i < highest, i == 0, Calc.spaces, '/') + space;
             }
         }
-        return tmpS.substring(0, tmpS.length() - space.length());
+        return ( tmpS.endsWith(space) ? tmpS.substring(0, tmpS.length() - space.length()) : tmpS );
     }
     
     public Polynomial add(Polynomial p2) {

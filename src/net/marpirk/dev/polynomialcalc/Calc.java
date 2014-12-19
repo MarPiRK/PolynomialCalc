@@ -17,7 +17,7 @@ public class Calc {
     
     private final static Logger log = Logger.getLogger(Calc.class.getName());
     
-    public final static boolean spaces = false;
+    public final static boolean spaces = true;
     
     public static void main(String[] args) {
         try {
