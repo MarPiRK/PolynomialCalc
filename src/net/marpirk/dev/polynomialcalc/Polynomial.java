@@ -90,13 +90,13 @@ public class Polynomial extends HashMapDelegation<Integer, Monomial> {
     @Override
     public String toString() {
         String tmpS = "";
+        String space = ( Calc.spaces ? " " : "" );
         for ( int i = highest; i >= 0; i--) {
             if ( containsKey(i) ) {
-                tmpS += get(i).toString(false, i < highest, i == 0, true, '/') + " ";
+                tmpS += get(i).toString(false, i < highest, i == 0, Calc.spaces, '/') + space;
             }
         }
-        if ( tmpS.startsWith("+") ) tmpS = tmpS.substring(2);
-        return tmpS;
+        return tmpS.substring(0, tmpS.length() - space.length());
     }
     
     public Polynomial add(Polynomial p2) {

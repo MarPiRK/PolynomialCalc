@@ -17,6 +17,8 @@ public class Calc {
     
     private final static Logger log = Logger.getLogger(Calc.class.getName());
     
+    public final static boolean spaces = false;
+    
     public static void main(String[] args) {
         try {
             ArrayList<String> wTmpArr = new ArrayList<>();

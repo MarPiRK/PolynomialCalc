@@ -1,9 +1,7 @@
 TODO list:
 ~ check new multi argument operation system
 + rest from dividing depending on operation (rdivide/divide)
-+ finish rdivide in Fraction
 + documentation
-~ check Fraction
-~ debug Fraction toString
+~ check Fraction with letters
 ~ check Polynomial operations
 ~ distinctly check Fraction rdivide!!!

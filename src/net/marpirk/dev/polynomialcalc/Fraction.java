@@ -94,9 +94,27 @@ public class Fraction {
         };
         
         class Element {
-            public boolean op = true;   //operator: + is true; - is false; default +
-            public String number = "";
-            public String key = "";
+            private boolean op = true;   //operator: + is true; - is false; default +
+            private String number = "";
+            private String key = "";
+            
+            private boolean changed = false;
+            
+            public boolean getOp() { return op; }
+            public String getNumber() {
+                return number;
+            }
+            public String getKey() { return key; }
+            
+            public void setOp(boolean op) { changed = true; this.op = op; }
+            
+            public void setNumber(String number) { changed = true; this.number = number; }
+            public void addNumber(String add) { changed = true; number += add; }
+            
+            public void setKey(String key) { changed = true; this.key = key; }
+            public void addKey(String add) { changed = true; key += add; }
+            
+            public boolean changed() { return changed; }
         }
         
         Element e = new Element();
@@ -104,26 +122,24 @@ public class Fraction {
         
         BiFunction<Element, Boolean, Element> add = (a, nominatordenominator) -> {
             HashMap<String, Long> cPart = getPart.apply(nominatordenominator);
-            if ( cPart.containsKey(a.key) ) {
-                cPart.replace(a.key, cPart.get(a.key) + Long.parseLong(( a.op ? '+' : '-' ) + a.number));
-                } else {
-                cPart.put(a.key, Long.parseLong(( a.op ? '+' : '-' ) + a.number));
+            if ( cPart.containsKey(a.getKey()) ) {
+                cPart.replace(a.getKey(), cPart.get(a.getKey()) + Long.parseLong(( a.getOp() ? '+' : '-' ) + a.getNumber()));
+            } else {
+                cPart.put(a.getKey(), Long.parseLong(( a.getOp() ? '+' : '-' ) + a.getNumber()));
             }
             return new Element();
         };
         
         for ( char c : toParse.toCharArray() ) {
             if ( c == '+' || c == '-' ) {
-                if ( !getPart.apply(nd).isEmpty() ) {
-                    e = add.apply(e, nd);
-                }
-                e.op = ( c == '+' );
+                if ( e.changed() ) e = add.apply(e, nd);
+                e.setOp( c == '+' );
             } else if ( A.isInteger(c + "") ) {
-                e.number += c;
+                e.addNumber(c + "");
             } else if ( Character.isAlphabetic(c) ) {
-                e.key += c;
+                e.addKey(c + "");
             } else if ( c == '/' ) {
-                if ( getPart.apply(nd).isEmpty() ) {
+                if ( !e.changed() ) {
                     throw new ParamParseException(toParse, c + "" , i18n.ex.getString("PARAM_PARSE_NUM_NOT_FOUND"));
                 } else {
                     e = add.apply(e, nd);
@@ -196,7 +212,7 @@ public class Fraction {
         removeUnneeded.accept(denominator);
         
         if ( numerator.isEmpty() ) {
-            denominator.clear();        //just to remove junk
+            denominator.clear();        //just to remove unneeded things
             denominator.put("", 1L);
         } else if ( denominator.isEmpty() ) throw new DivisionByZeroFractionException(partToString(numerator, false, false, true));
         
@@ -212,7 +228,7 @@ public class Fraction {
         
         //check greatest common divisor to reduce
         long gcd = A.gcd(A.getIterableGCD(numerator.values()), A.getIterableGCD(denominator.values()));
-        if ( gcd > 1 ) {
+        if ( gcd > 1 || changeSign ) {
             for ( String s : numerator.keySet() ) {
                 numerator.replace(s, ( changeSign ? -1 : 1 ) * numerator.get(s) / gcd);
             }
@@ -359,7 +375,8 @@ public class Fraction {
      * @return 
      */
     public String toString(boolean exact, boolean operator, boolean one, boolean spaces, char divisionChar) {
-        String op = ( spaces ? " " + divisionChar + " " : divisionChar ) + "";
+        String space = ( spaces ? " " : "" );
+        String op = space + divisionChar + space;
         if ( isNumberFraction() ) {
             if ( exact ) {
                 try { return getValue() + ""; } catch (CannotPerformOperationFractionException ex) { return null; } //will never occur - on the beginning is isNumberFraction check
@@ -369,31 +386,27 @@ public class Fraction {
                 
                 long den = denominator.get("");     //will never be lower than 0
                 
-                String numS, denS;
+                String numS, denS = "";
                 if ( operator ) {
                     numS = ( num >=0 ? "+" : "-" );
-                    denS = ( den >=0 ? "+" : "" );
                 } else {
                     numS = ( num >=0 ? "" : "-" );
-                    denS = "";
                 }
                 if ( spaces ) {
                     if ( numS.length() > 0 ) numS += " ";
                     if ( denS.length() > 0 ) denS += " ";
                 }
-                if ( !one ) {
-                    if ( (num != 1 && num != -1) || (num == 1 && num == -1 && den != 1) ) numS += Math.abs(num);   //if denominator is not 1 and numerator is +-1 then fraction would be like this: -1/123 or 1/23 - not -/123 or /23
-                    if ( den != 1 ) denS += Math.abs(den);
-                } else {
+                if ( one ) {
                     numS += Math.abs(num);
                     denS += Math.abs(den);
+                } else {
+                    if ( (num != 1 && num != -1) || (num == 1 && num == -1 && den != 1) ) numS += Math.abs(num);   //if denominator is not 1 and numerator is +-1 then fraction would be like this: -1/123 or 1/23 - not -/123 or /23
+                    if ( den != 1 ) denS += Math.abs(den);
                 }
                 return numS + ( den != 1 ? op + denS : "" );
             }
         } else {
             if ( numerator.isEmpty() ) return "0";
-            
-            String space = ( spaces ? " " : "" );
             
             String numS = partToString(numerator, operator, one, spaces);
                 

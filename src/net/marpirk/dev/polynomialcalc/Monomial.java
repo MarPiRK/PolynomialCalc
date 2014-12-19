@@ -63,7 +63,8 @@ public class Monomial {
      * @return 
      */
     public String toString(boolean exact, boolean operator, boolean one, boolean spaces, char divisionChar) {
-        return coefficient.toString(exact, operator, one, spaces, divisionChar) + xtoString(spaces);
+        String fr = coefficient.toString(exact, operator, one, spaces, divisionChar);
+        return fr + xtoString(spaces && fr.length() > 0);
     }
     
     public Monomial add(Monomial m2) throws MonomialPowerMismatchException {
