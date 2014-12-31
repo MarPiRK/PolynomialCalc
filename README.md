@@ -2,6 +2,7 @@ PolynomialCalc
 ==============
 
 It's small hobbyist's project which I decided to make after maths lessons about polynomials. It's still work in progress and for awhile I suspend it, but if anybody finds it interesting, can work on this code a little :)
+Everything what I'm planning to do here is included in TODO file.
 
 Requirements
 ------------
@@ -15,3 +16,8 @@ Versioning
 It's not really big deal, but I wanted to make it as tidy as possible. For me versioning to this point worked pretty well, but if anybody will join this project it won't make any sense anymore and version number will be added after some significant stage.
 
 (By the way if anybody whose English is better than mine wants to make some language corrections, I see no problem)
+
+License
+-------
+
+Code is shared on GNU General Public License (version 3), which contents are placed in file LICENSE
